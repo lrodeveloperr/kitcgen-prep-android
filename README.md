@@ -1,5 +1,14 @@
 # Kitchen Prep Board — Android
 
-Authoritative Android source for Kitchen Prep Board — Personal Station Workbench.
+Fresh native **Sage Station** implementation for Kitchen Prep Board — Personal Station Workbench.
 
-Selected UI: Timeline Pulse. Architecture: Kotlin + Jetpack Compose, local-first. Core features work without an account or GoodUse backend. The QA workflow produces an installable review APK only and does not publish to Google Play.
+Authority:
+- App ID: `kitchen-prep-board`
+- Frozen backend SHA-256: `431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b`
+- Supplied Sage Station complete-screen-pack SHA-256: `d2c94eb77c8db9d818cce7365f26b03cdeea03492e24611e3872b24355dc19a9`
+- UI: Kotlin + Jetpack Compose / Material 3
+- Core: local-first; no account/cloud/server dependency
+
+The previous Timeline Pulse/workflow-only repository state is intentionally superseded by this fresh tree.
+
+No push-triggered GitHub Action is included. Pushing source does not automatically consume CI minutes or publish to a store.

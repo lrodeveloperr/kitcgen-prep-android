@@ -1,0 +1,40 @@
+contract_version: KPB-SAGE-STATION-CODEGEN-v2
+app_id: kitchen-prep-board
+backend_sha256: 431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b
+selected_screen_pack_sha256: d2c94eb77c8db9d818cce7365f26b03cdeea03492e24611e3872b24355dc19a9
+owner_directed_ui_concept: KPB-SAGE-STATION-2026-08-22
+platform: android
+native_track: Kotlin + Jetpack Compose
+screen_contract_ids:
+  - KPB-SCR-01-LANGUAGE_LOCALE-FIRST_RUN_DEFAULT-v1
+  - KPB-SCR-02-PRIVACY_AD_ELIGIBILITY-FREE_OR_SUBSCRIBER-v1
+  - KPB-SCR-03-HOME-ACTIVE_OR_IDLE-v1
+  - KPB-SCR-04-CREATE_BOARD-MANUAL_OR_IMPORTED-v1
+  - KPB-SCR-05-QUICK_REVIEW-DRAFT_REVIEW-v1
+  - KPB-SCR-06-SELECT_MODE-HOME_OR_STATION-v1
+  - KPB-SCR-07-MODE_SPECIFIC_SETUP-HOME_DEPICTED_STATION_DERIVED-v1
+  - KPB-SCR-08-PREP_GAP-STATION_ONLY-v1
+  - KPB-SCR-09-TIMING_OBJECTIVE-COOK_NOW_SERVE_AT_READY_BY-v1
+  - KPB-SCR-10-READY_OVERVIEW-READY-v1
+  - KPB-SCR-11-RUN_BOARD-ACTIVE_COMPACT-v1
+  - KPB-SCR-12-PAUSED_BOARD-PAUSED-v1
+  - KPB-SCR-13-FINISH-COMPLETE_OR_UNFINISHED-v1
+  - KPB-SCR-14-REUSE_OR_HOME-COMPLETED_OR_ARCHIVED-v1
+  - KPB-SCR-15-SETTINGS-GENERAL-v1
+  - KPB-SCR-16-SETTINGS_DETAIL-DATA_PRIVACY_LEGAL-v1
+  - KPB-SCR-17-RUN_BOARD-ACTIVE_EXPANDED-v1
+visual_locks:
+  palette: warm cream + muted sage + natural wood + dark green
+  logo: prep-board/timer/checklist; no botanical substitute
+  ingredient_media: semantic/category glyph only
+  tool_media: representative known tool icon; one generic kitchen-tool fallback
+  timing_icons: distinct Cook Now / Serve At / Ready By semantics
+  resume_icon: one clean optically centred play glyph
+  privacy_ads_label_en: Show ads
+  themes: [light, dark, system]
+responsive:
+  extra_compact_gutter_dp: 12
+  compact_gutter_dp: 16
+  page_gap_dp: 14
+  touch_target_dp: 48
+  expanded_run_board_min_dp: 840
