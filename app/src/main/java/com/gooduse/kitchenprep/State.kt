@@ -82,7 +82,7 @@ class KitchenPrepViewModel(private val context:Context):ViewModel(){
     fun addTask(v:String){if(v.isBlank())return;_s.update{u->val b=u.board?:return@update u;u.copy(board=b.copy(tasks=b.tasks+Task(text=v.trim())))}}
     fun reviewNext()=go(Screen.MODE)
     fun selectMode(v:BoardMode)=_s.update{it.copy(mode=v)}
-    fun modeNext(){_s.update{u->u.copy(board=(u.board?:Board("Prep Board")).copy(mode=u.mode),screen=Screen.SETUP)}}
+    fun modeNext(){_s.update{u->u.copy(board=(u.board?:Board(title="Prep Board")).copy(mode=u.mode),screen=Screen.SETUP)}}
     fun setServings(v:Int)=_s.update{it.copy(servings=v.coerceIn(1,1000))}
     fun setServiceType(v:String)=_s.update{it.copy(serviceType=v.take(60))}
     fun setupNext()=go(if(_s.value.mode==BoardMode.STATION)Screen.PREP_GAP else Screen.TIMING)
