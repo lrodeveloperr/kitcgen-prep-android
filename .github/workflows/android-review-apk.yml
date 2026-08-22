@@ -32,6 +32,7 @@ jobs:
           if [ -d bootstrap/overrides ]; then
             cp -a bootstrap/overrides/. .
           fi
+          python3 apply_source_fixes.py
 
       - name: Use JDK 17
         uses: actions/setup-java@v5
