@@ -33,6 +33,19 @@ jobs:
             cp -a bootstrap/overrides/. .
           fi
 
+      - name: Capture compiler-target source files
+        uses: actions/upload-artifact@v4
+        with:
+          name: kitchen-prep-compiler-targets
+          path: |
+            app/src/main/java/com/goodusestudios/kitchenprep/platform/MonetizationCoordinator.kt
+            app/src/main/java/com/goodusestudios/kitchenprep/ui/TimelinePulseApp.kt
+            app/src/main/java/com/goodusestudios/kitchenprep/ui/screens/HomeScreen.kt
+            app/src/main/java/com/goodusestudios/kitchenprep/ui/screens/SettingsScreen.kt
+            app/src/main/java/com/goodusestudios/kitchenprep/ui/screens/TimelinePulseScreen.kt
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Use JDK 17
         uses: actions/setup-java@v5
         with:
