@@ -6,7 +6,7 @@
   "files": {
     ".gitignore": "9d0c62b809cf774b889dd315c3197a82950013bf105360f012746240149e4f89",
     "APP_UI_CODEGEN_CONTRACT.yaml": "ebeab876ad38d1d933ed1d50e8e71e3d6c144abd6e7c74889dc59b64636607dc",
-    "README.md": "b9f639a7920635e7a86cf20b8667371c15e8c7ad21e797b0732a3870be8d6fce",
+    "README.md": "f623179940c2a164e6ef8a77b540dda0419a5cf6e021b33ff84f651cbbd1740b",
     "app/build.gradle.kts": "3932ce551abe02b927e56ed2baa353ec0b723e0638bcb91b2ee60876d5eefff5",
     "app/src/main/AndroidManifest.xml": "60fe0fc7cdabbebddb3c859206484270f547e51aedda501a1dbf2cd28108025b",
     "app/src/main/java/com/gooduse/kitchenprep/MainActivity.kt": "b582df6bb7d0c75b4028b7befffd766db544f301cb9c09296d26935d633fbc0f",
