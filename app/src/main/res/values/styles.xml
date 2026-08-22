@@ -1,0 +1,7 @@
+<resources>
+  <style name="Theme.KitchenPrep" parent="android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:windowLightStatusBar">true</item>
+    <item name="android:statusBarColor">#FAF5EF</item>
+    <item name="android:navigationBarColor">#FAF5EF</item>
+  </style>
+</resources>
