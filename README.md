@@ -9,8 +9,6 @@ Authority:
 - UI: Kotlin + Jetpack Compose / Material 3
 - Core interaction baseline: local-first; no account/cloud/server dependency
 
-The previous Timeline Pulse/workflow-only repository state is intentionally superseded by this fresh tree.
-
 Release integration still needs the production Room/AlarmManager/AdMob/UMP/Play Billing adapters and full locale resources required by the frozen backend before a store build can be certified.
 
 No push-triggered GitHub Action is included. Pushing source does not automatically consume CI minutes or publish to a store.
