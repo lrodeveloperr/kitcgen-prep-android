@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -21,6 +22,7 @@ fun KitchenPrepRoot(
     val state by resolvedBackend.state
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var storeIntroPage by rememberSaveable { mutableIntStateOf(0) }
 
     // First use is deliberately shown before Google UMP/Billing initialization. Once
     // the short privacy/ads notice has been seen, the normal UMP regional consent
@@ -42,7 +44,17 @@ fun KitchenPrepRoot(
         bottomRail = if (banner.loaded) ({ LoadedBannerRail(banner) }) else null
     ) {
         when {
-            !state.onboardingComplete -> StoreReadyFirstUse(state.onboardingPage) { resolvedBackend.dispatch("ONBOARD_NEXT") }
+            !state.onboardingComplete -> StoreReadyFirstUse(storeIntroPage) {
+                if (storeIntroPage < 2) {
+                    storeIntroPage++
+                } else {
+                    // The legacy backend persists onboarding completion after two
+                    // ONBOARD_NEXT actions. Keep that storage contract unchanged
+                    // while presenting the clearer three-page release UI above it.
+                    resolvedBackend.dispatch("ONBOARD_NEXT")
+                    resolvedBackend.dispatch("ONBOARD_NEXT")
+                }
+            }
             state.backendState == BackendState.SETTINGS -> StoreReadySettingsScreen(state, resolvedBackend::dispatch)
             else -> KitchenScreen(state, resolvedBackend::dispatch)
         }
@@ -58,7 +70,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=412,heightDp=915,showBackground=true)
 @Composable private fun CompactPreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")
@@ -68,7 +80,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=1024,heightDp=768,showBackground=true)
 @Composable private fun WidePreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")
