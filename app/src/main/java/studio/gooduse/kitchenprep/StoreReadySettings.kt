@@ -35,6 +35,7 @@ fun StoreReadySettingsScreen(s: KitchenUiState, dispatch: (String, String?) -> U
     }
 
     val priceDetail = when {
+        s.purchaseInProgress -> "Opening Google Play…"
         s.removeAdsFormattedPrice != null && s.removeAdsBillingPeriod == "P1M" ->
             "${s.removeAdsFormattedPrice} per month · auto-renewing"
         s.removeAdsFormattedPrice != null ->
@@ -83,7 +84,7 @@ fun StoreReadySettingsScreen(s: KitchenUiState, dispatch: (String, String?) -> U
                 } else {
                     StoreLinkRow(
                         "Remove ads",
-                        true,
+                        !s.purchaseInProgress,
                         priceDetail,
                     ) { dispatch("REMOVE_ADS", null) }
                 }
