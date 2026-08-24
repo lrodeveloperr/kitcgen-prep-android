@@ -1,0 +1,4 @@
+Kitchen-Prep-Board-Android-Backend-v1.1.0.json
+431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b
+
+The authoritative contract content is unchanged from the validated v1.1.1 source package; the executable Android implementation on main is the release source of truth for this revision.

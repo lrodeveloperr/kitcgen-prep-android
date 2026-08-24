@@ -1,0 +1,116 @@
+{
+  "contractVersion": "1.0.0",
+  "appId": "kitchen-prep-board",
+  "shellMode": "FOCUSED_TASK",
+  "theme": {
+    "light": {
+      "canvas": "#F5F7F8",
+      "surface": "#FFFFFF",
+      "surfaceRaised": "#EDF3F5",
+      "primary": "#215B7A",
+      "onPrimary": "#FFFFFF",
+      "textPrimary": "#13232D",
+      "textSecondary": "#51636D",
+      "border": "#CDD9DE",
+      "success": "#2E7259",
+      "warning": "#9A6508",
+      "error": "#A74343"
+    },
+    "dark": {
+      "canvas": "#0E1519",
+      "surface": "#162128",
+      "surfaceRaised": "#1D2B33",
+      "primary": "#8FC8E8",
+      "onPrimary": "#08202D",
+      "textPrimary": "#EDF4F7",
+      "textSecondary": "#B8C7CE",
+      "border": "#40515B",
+      "success": "#72C19A",
+      "warning": "#E4B65E",
+      "error": "#E08C8C"
+    },
+    "spacing": {
+      "xxs": 4,
+      "xs": 8,
+      "small": 12,
+      "medium": 16,
+      "large": 24,
+      "xl": 32
+    },
+    "radius": {
+      "small": 12,
+      "medium": 16,
+      "large": 20
+    },
+    "typography": {
+      "display": {
+        "androidSp": 30,
+        "iosPt": 30,
+        "lineHeight": 36,
+        "weight": "SEMIBOLD"
+      },
+      "title": {
+        "androidSp": 21,
+        "iosPt": 21,
+        "lineHeight": 27,
+        "weight": "SEMIBOLD"
+      },
+      "body": {
+        "androidSp": 16,
+        "iosPt": 16,
+        "lineHeight": 23,
+        "weight": "REGULAR"
+      },
+      "label": {
+        "androidSp": 14,
+        "iosPt": 14,
+        "lineHeight": 19,
+        "weight": "MEDIUM"
+      },
+      "metric": {
+        "androidSp": 28,
+        "iosPt": 28,
+        "lineHeight": 32,
+        "weight": "BOLD"
+      }
+    }
+  },
+  "layout": {
+    "compactGutter": 16,
+    "regularGutter": 24,
+    "maxContentWidth": 1440,
+    "density": "COMFORTABLE",
+    "primaryActionPlacement": "INLINE",
+    "wideMode": "TWO_COLUMN"
+  },
+  "navigation": {
+    "startRoute": "home",
+    "destinations": [
+      {
+        "route": "home",
+        "labelKey": "home",
+        "iconKey": "home"
+      }
+    ]
+  },
+  "adRail": {
+    "enabled": true,
+    "reserveSpaceWhenEmpty": false
+  },
+  "screens": [
+    {"id":"home","route":"home","kind":"DASHBOARD","composition":"STACK","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"create","route":"create","kind":"FORM","composition":"FORM","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"review","route":"review","kind":"FORM","composition":"LIST","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"mode","route":"mode","kind":"FORM","composition":"STACK","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"mode-setup","route":"mode-setup","kind":"FORM","composition":"STACK","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"prep-gap","route":"prep-gap","kind":"WORKBENCH","composition":"LIST","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"timing","route":"timing","kind":"FORM","composition":"STACK","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"build","route":"build","kind":"WORKBENCH","composition":"STACK","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"ready","route":"ready","kind":"WORKBENCH","composition":"TIMELINE","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"run","route":"run","kind":"WORKBENCH","composition":"BOARD","scroll":"VERTICAL","maxColumns":3,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"paused","route":"paused","kind":"WORKBENCH","composition":"BOARD","scroll":"VERTICAL","maxColumns":3,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"finish","route":"finish","kind":"WORKBENCH","composition":"STACK","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"reuse","route":"reuse","kind":"WORKBENCH","composition":"STACK","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]},
+    {"id":"settings","route":"settings","kind":"SETTINGS","composition":"LIST","scroll":"VERTICAL","maxColumns":1,"accentRole":"PRIMARY","sections":[{"slot":"HEADER","presentation":"PLAIN"},{"slot":"PRIMARY_CONTENT","presentation":"PLAIN"},{"slot":"PRIMARY_ACTION","presentation":"PLAIN"}]}
+  ]
+}

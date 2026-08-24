@@ -1,13 +1,35 @@
-# Kitchen Prep Board — Android Latest Version
+# Kitchen Prep Board — Android v1.1.1
 
-`main` intentionally points to the canonical latest Android source package for Kitchen Prep Board.
+`main` is the current combined Jetpack Compose UI + executable local Android backend source.
 
-- Canonical package: `Kitchen-Prep-Board-Jetpack-Skin-v1.zip`
-- Backend contract: v1.1.0, embedded in the package
-- Shared UI contract: `KitchenPrepBoard-UI-Contract-v1.0.0.json`
-- Verification: `KitchenPrepBoard-Skin-Verification.json`
-- Package SHA-256: `84489b360d2b939423de72a01aea1173926da1f2c3dbe75040cbceb8d77d89de`
+Backend contract SHA-256: `431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b`.
 
-Extract the ZIP to build or inspect the current source. Previous implementations—including the superseded image-bearing skin—remain available in Git history and are not current authority.
+## v1.1.1 fixes
 
-The package is the presentation skin plus backend presentation port against the supplied implementation-ready backend specification; it does not fabricate missing production Room/timer/AdMob/UMP/Play Billing implementation.
+- `BootCompletedReceiver` and `ClockChangeReceiver` are exported for system timer-recovery broadcasts; the internal alarm receiver remains non-exported.
+- Starting a replacement board archives every open `DRAFT`, `READY`, `ACTIVE`, or `PAUSED` board and cancels live timers first.
+- Duplicate-board reuse selects the latest finished board and remaps dependencies, prep gaps, and task resource requirements.
+- Full local-data deletion includes shifts and resources.
+- Resource scheduling uses bounded forward conflict scanning rather than the old 512-attempt behavior; a 600-task capacity-1 regression test is included.
+- Task-start outcomes are explicit and surfaced to the UI.
+- Undo returns terminal tasks through `BLOCKED` before dependency recomputation.
+- Latest finished-board lookup is a DAO query.
+- Duplicate failure stays on Home with a clear user message.
+
+## Build baseline
+
+- Android Gradle Plugin 9.3.1
+- Gradle 9.5.0 compatible installation required
+- JDK 17
+- compileSdk 37 / targetSdk 36 / minSdk 23
+
+Typical local commands:
+
+```bash
+gradle :app:testDebugUnitTest
+gradle :app:assembleDebug
+```
+
+The project intentionally does not include a fabricated Gradle wrapper binary. Production AdMob IDs, live Play subscription configuration, and final policy/support URLs must be supplied before release.
+
+See `VERIFICATION.json` for the validation boundary. A full Android SDK/Gradle build was unavailable in the packaging environment; focused Kotlin semantic/regression validation passed.
