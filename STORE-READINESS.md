@@ -21,15 +21,13 @@ This is the release gate for the Android app. It uses a conservative global base
 - **Distribution:** all otherwise eligible Play-supported countries except jurisdictions excluded under `COUNTRY-AVAILABILITY.md` because the owner does not want extra local representative appointments beyond EEA/UK representation.
 - **EU/EEA + UK representation:** owner intends to purchase one commercial provider/service capable of covering both; representative details remain a release blocker until appointed and published.
 - **Remove-ads model:** optional monthly auto-renewing subscription, benefit = ad removal only.
-- **Recommended US base price:** **US$1.49/month**, no free trial at launch. Google Play supplies localized storefront prices; manual lower-price overrides may be used in lower-income markets if desired.
+- **Locked U.S. base price:** **US$1.49/month**, no free trial or introductory offer at launch.
 
 ## Why US$1.49/month
 
-Current market checks place simple ad-removal subscriptions around **US$0.99–$1.99/month**. Examples include Shopping Memo+ at $0.99/month for ad removal, Eorzea Timers Plus at $0.99/month for ad removal, and utility/premium plans around $1.99/month. Food/cooking subscriptions with materially more premium functionality are higher: Cookmate around $1.99/month, Mealime Pro $2.99/month, and Samsung Food+ $6.99/month.
+Current market checks place simple ad-removal subscriptions around **US$0.99–$1.99/month**. Food/cooking subscriptions with materially more premium functionality are higher. Kitchen Prep Board's subscription removes ads only, so $2.99+ would be difficult to justify, while $0.99 gives up too much subscription ARPU for a long-session utility. **$1.49/month is the selected launch midpoint.**
 
-Kitchen Prep Board's subscription removes ads only, so $2.99+ would be difficult to justify. $0.99 undervalues a long-session kitchen utility and gives up subscription ARPU. **$1.49/month is the midpoint that keeps the decision low-friction while monetizing heavy users better than banner ads alone.**
-
-Launch recommendation: monthly only, no trial, no annual plan initially. The free app is already the trial; adding a free subscription trial creates billing/support complexity without proving additional value.
+Launch configuration is monthly only, no trial, no introductory discount, and no annual plan initially. The free app is already the product trial.
 
 ## Current technical status
 
@@ -38,9 +36,10 @@ Launch recommendation: monthly only, no trial, no annual plan initially. The fre
 - **Android backup:** PASS — disabled.
 - **Google UMP:** IMPLEMENTED — attaches only after app-owned first-use notice is complete.
 - **Privacy choices:** IMPLEMENTED — Settings can reopen Google privacy options when required.
-- **Google Play Billing:** IMPLEMENTED CLIENT-SIDE — final product configuration, localized price display and Play-track testing remain required.
+- **Google Play Billing:** IMPLEMENTED CLIENT-SIDE — product/base-plan configuration and Play-track testing remain required.
+- **Localized subscription price display:** IMPLEMENTED — the billing controller queries the `monthly` base plan `ProductDetails` and flows Google Play's formatted price/billing period into Settings before purchase. The app does not hard-code the storefront price.
 - **AdMob production IDs:** BLOCKED pending device QA/live IDs.
-- **Public legal repository:** CREATED — `lrodeveloperr/kitchen-prep-board-policies-repo`; Pages/public URLs still need final publication and wiring.
+- **Public legal repository:** CREATED — `lrodeveloperr/kitchen-prep-board-policies-repo`; GitHub Pages still needs to be enabled/verified.
 - **Native final UI:** BLOCKED — approved HTML visual/workflow source still needs final Compose port, including 31-language resources.
 - **Signed release validation:** BLOCKED — final AAB, signing, install/runtime, billing, UMP and banner behavior must be tested.
 
@@ -87,24 +86,26 @@ Then request device permissions only in context:
 
 Android 1.0 includes **no Firebase Analytics and no Firebase Crashlytics**. Use Google Play **Android vitals** for Play-provided crash/ANR information. Adding any embedded analytics/crash SDK later requires Privacy Policy, Data safety and SDK-inventory review before release.
 
-## Subscription release gate
+## Subscription release gate — price locked
 
-Recommended production configuration:
+Production configuration:
 
-- product ID: `remove_ads_monthly`;
-- base plan: `monthly`;
-- billing period: monthly auto-renewal;
-- US base price: **$1.49/month**;
+- product ID: **`remove_ads_monthly`**;
+- base plan: **`monthly`**;
+- billing period: **monthly auto-renewal**;
+- U.S. base price: **US$1.49/month**;
 - free trial: **none**;
 - introductory offer: **none at launch**;
+- annual plan: **none at launch**;
 - benefit: removes ads while subscription is active.
 
 Before release:
 
-- create/activate product/base plan in Play Console;
-- display localized Google Play ProductDetails price and renewal period before purchase;
+- create/activate the product/base plan in Play Console and set the U.S. base price to **US$1.49/month**;
+- review Google's generated localized storefront prices and adjust selectively later if needed;
+- verify the app shows Google Play's localized `ProductDetails` price and renewal period before purchase;
 - provide Manage subscription;
-- verify purchase, acknowledgement, reconciliation, cancellation and expiry using a Play-track build;
+- verify purchase, acknowledgment, reconciliation, cancellation and expiry using a Play-track build;
 - do not hard-code storefront price in app UI.
 
 ## Permissions release gate
@@ -127,7 +128,7 @@ Do not advertise a fixed country count until the final Play Console country list
 
 Public repo exists: **`lrodeveloperr/kitchen-prep-board-policies-repo`**.
 
-Publish stable HTTPS pages for Privacy, Terms, Support, Safety, Data Choices and Subscription terms, then insert exact URLs into Android BuildConfig/Settings and Play Console. GitHub Pages is sufficient; a paid domain is optional.
+Stable policy pages have been created for Privacy, Terms, Support, Safety, Data Choices and Subscription terms, and the Android BuildConfig is wired to the expected GitHub Pages URLs. GitHub Pages must still be enabled/verified at **main → /docs**.
 
 ## EU/EEA + UK representative
 
@@ -135,17 +136,17 @@ Owner intends to pay for one provider capable of covering both regimes. Current 
 
 ## Personal Play account testing
 
-Owner does not know the creation date; identity verification occurred **4 August 2026**. Because the account is personal and appears recent, **assume the current closed-testing production-access requirement applies unless Play Console already shows Production access**. Current rule: at least 12 testers opted in continuously for 14 days before applying for Production access for qualifying new personal accounts.
+Owner does not know the creation date; identity verification occurred **4 August 2026**. Because the account is personal and appears recent, **assume the current closed-testing production-access requirement applies unless Play Console already shows Production access**.
 
-## Remaining owner inputs
+## Remaining owner inputs/actions
 
-1. Confirmation from Play Console whether Production access is already granted; otherwise proceed on the assumption closed testing is required.
+1. Confirm from Play Console whether Production access is already granted; otherwise proceed with the required closed test.
 2. EU/EEA + UK representative details after appointment.
 3. Production AdMob app ID and banner ID after phone/tablet QA.
-4. Confirm acceptance of the recommended **$1.49/month, no-trial** remove-ads plan; then configure it in Play Console.
-5. Confirm whether versionCode 3 is unused. Owner has stated no APK/AAB has ever been uploaded, so versionCode 3 is currently treated as available unless Play Console shows otherwise.
+4. In Play Console, create/activate `remove_ads_monthly` → `monthly` at **US$1.49/month**, with no trial/intro offer.
+5. Enable/verify GitHub Pages for `kitchen-prep-board-policies-repo` if not already live.
 
-Everything else from the earlier owner-information checklist is resolved.
+The subscription price decision is no longer open.
 
 ## iOS boundary
 
