@@ -15,18 +15,15 @@ These owner decisions are the release baseline unless explicitly changed later.
 
 - Android launches first.
 - Public Android versionName: **1.0.0**.
-- Verify the next unused integer versionCode in Play immediately before production upload.
+- No APK/AAB has previously been uploaded, so versionCode **3** is treated as available unless Play Console shows otherwise.
 - iOS is not a blocker for Android launch and is not yet store-ready.
 
 ## Audience
 
-- Android 1.0 is intended for **16+**.
-- Neutral date-of-birth screen appears before UMP, Billing connection, or Mobile Ads initialization.
-- Exact date of birth is not persisted; only the derived category is stored locally.
-- Under 16: blocked from Android 1.0.
-- 16–17: `TEEN` Google Mobile Ads age-restricted treatment; no personalized ads.
-- 18+: adult/unspecified age-restricted treatment; UMP and applicable regional privacy choices control advertising mode.
-- Play target-audience/Families declarations must be verified because Play notes that 16–17 may be treated as children in some locales.
+- Android 1.0 is **18+ only**.
+- No neutral DOB screen, no stored age category, no teen/child ad path.
+- Play target audience must be **18 and over only**.
+- Listing, creative and advertising configuration must remain adult-oriented and not child-directed.
 
 ## Advertising
 
@@ -34,10 +31,10 @@ These owner decisions are the release baseline unless explicitly changed later.
 - No interstitials in active prep/timer workflow for Android 1.0.
 - Banner space is reserved before ad load to prevent layout shift.
 - A non-interactive gap separates banner from navigation/actions.
-- Maximum ad content rating: Teen (`T`) or stricter for Android 1.0.
+- Maximum ad content rating remains **Teen (T)** or stricter for brand suitability; this does not make the app teen-targeted.
 - Production AdMob IDs will be supplied only after owner phone/tablet QA.
 - Development/demo AdMob IDs must be rejected by production validation.
-- Do not force `npa=1` for adults; adult treatment follows UMP/regional rules. Teen treatment remains non-personalized.
+- Do not force `npa=1` globally; adult ad treatment follows UMP/regional rules.
 
 ## Diagnostics / analytics
 
@@ -48,15 +45,24 @@ These owner decisions are the release baseline unless explicitly changed later.
 
 ## Subscription
 
-- Android may offer an auto-renewing remove-ads subscription.
-- Exact product/base-plan IDs, billing period, pricing strategy and any trial/intro offer remain to be confirmed.
+- Android offers an auto-renewing **monthly remove-ads** subscription.
+- Recommended production product ID: `remove_ads_monthly`.
+- Recommended base plan: `monthly`.
+- Recommended US base price: **US$1.49/month**.
+- Recommended launch offer: **no free trial, no introductory discount, no annual plan initially**.
+- Benefit: removes ads while the subscription is active; no core functionality is paywalled.
 - Production UI must display Google Play’s current localized price and billing period before purchase; no hard-coded price.
+
+### Pricing rationale
+
+Current simple ad-removal subscriptions cluster around **$0.99–$1.99/month**. Cooking/meal apps that bundle meaningful premium features are higher: Cookmate around $1.99/month, Mealime Pro $2.99/month and Samsung Food+ $6.99/month. Since Kitchen Prep Board's paid benefit is ad removal only, **$1.49/month** is the strongest midpoint: low-friction for heavy users, but materially better subscription ARPU than $0.99.
 
 ## Privacy / legal site
 
 - Policies must be public HTTPS pages, accessible without login and not PDF-only.
-- Recommended free host: a public GitHub Pages repository named `kitchen-prep-board-legal`.
-- Effective policies will include provider identity, mailing address, support email, age treatment, AdMob/UMP, Google Play Billing, 24-month support retention, Android vitals, local data deletion, food-safety boundary and country/representative disclosures.
+- Public repo created: **`lrodeveloperr/kitchen-prep-board-policies-repo`**.
+- GitHub Pages is sufficient; a paid domain is optional.
+- Effective policies include provider identity, mailing address, support email, 18+ positioning, AdMob/UMP, Google Play Billing, 24-month support retention, Android vitals, local data deletion, food-safety boundary and country/representative disclosures.
 
 ## Representative strategy / country availability
 
@@ -69,15 +75,15 @@ These owner decisions are the release baseline unless explicitly changed later.
 ## Play account
 
 - Play developer account type: **personal**.
-- Account creation date / current Production access still must be confirmed to determine whether the 12-testers-for-14-days production-access rule applies.
+- Identity verification occurred **4 August 2026**.
+- Account creation date is unknown. Because the account appears recent, treat the closed-testing production-access rule as applicable unless Play Console already shows Production access.
 
-## Release blockers still requiring owner input
+## Release blockers still requiring owner input/action
 
-1. Play personal-account creation date **or** confirmation Production access is already granted.
-2. Public `kitchen-prep-board-legal` repo/domain.
-3. EU/EEA + UK representative details after appointment.
-4. Production AdMob Android app ID and banner ID after device QA.
-5. Final remove-ads subscription configuration (product/base plan, period, pricing strategy, trial/intro offer or none).
-6. Next unused Play versionCode if versionCode 3 has already been uploaded.
+1. Confirm whether Play Console already shows **Production access**; otherwise proceed with the 12-testers/14-days closed-test path.
+2. EU/EEA + UK representative details after appointment.
+3. Production AdMob Android app ID and banner ID after device QA.
+4. Owner acceptance of **$1.49/month, no trial** recommendation and Play Console product creation.
+5. Enable GitHub Pages for `kitchen-prep-board-policies-repo` once legal files are published.
 
 All earlier owner-information items are resolved.
