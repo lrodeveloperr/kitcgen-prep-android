@@ -15,6 +15,7 @@ This is the release gate for the Android app. It uses a conservative global base
 - **Play developer account:** personal; identity verified 4 August 2026. Treat the account as subject to the current new-personal-account testing rule unless Play Console already shows Production access.
 - **Audience:** adults **18+ only**.
 - **Age data:** no DOB/age gate; do not collect or store date of birth.
+- **Onboarding:** **none**. Launch directly to Home. Privacy, permissions and safety acknowledgements appear only in context where required.
 - **Analytics:** none for Android 1.0.
 - **Crash diagnostics:** Google Play Android vitals only; no Firebase Analytics/Crashlytics in Android 1.0.
 - **AdMob production IDs:** deliberately deferred until owner finishes phone/tablet QA.
@@ -34,30 +35,29 @@ Launch configuration is monthly only, no trial, no introductory discount, and no
 - **Target API:** PASS — targetSdk 36.
 - **Local-first architecture:** PASS — no account or developer-operated cloud database identified.
 - **Android backup:** PASS — disabled.
-- **Google UMP:** IMPLEMENTED — attaches only after app-owned first-use notice is complete.
+- **No onboarding:** IMPLEMENTED — obsolete first-use screen removed; monetization attaches as soon as an Activity is available.
+- **Google UMP:** IMPLEMENTED — ad requests remain blocked until `canRequestAds()` permits them; a UMP error still re-checks prior-session consent as Google recommends.
 - **Privacy choices:** IMPLEMENTED — Settings can reopen Google privacy options when required.
-- **Google Play Billing:** IMPLEMENTED CLIENT-SIDE — product/base-plan configuration and Play-track testing remain required.
-- **Localized subscription price display:** IMPLEMENTED — the billing controller queries the `monthly` base plan `ProductDetails` and flows Google Play's formatted price/billing period into Settings before purchase. The app does not hard-code the storefront price.
+- **Google Play Billing:** IMPLEMENTED CLIENT-SIDE — one BillingClient, foreground reconciliation, exact `remove_ads_monthly` / `monthly` offer selection, duplicate-purchase guard, stale-query protection and acknowledgement retry/backoff are implemented. Play-track testing remains required.
+- **Subscriber ad safety:** IMPLEMENTED — a cached FREE entitlement cannot request ads until Google Play verifies FREE in the current process; stale purchase-query callbacks cannot overwrite a newer subscriber result.
+- **Localized subscription price display:** IMPLEMENTED — the billing controller queries the exact `monthly` base plan `ProductDetails` and flows Google Play's formatted price/billing period into Settings before purchase. The app does not hard-code `$1.49` as the storefront price.
+- **Banner hardening:** IMPLEMENTED — Mobile Ads initializes once per process after monetization gates permit ads; adaptive size uses the actual available rail width; AdView follows lifecycle; transient load failures retry with bounded backoff; NO_FILL/invalid requests are not aggressively retried.
+- **Release AdMob guard:** IMPLEMENTED — release build is blocked if production AdMob IDs are missing, malformed or still Google's demo IDs.
 - **AdMob production IDs:** BLOCKED pending device QA/live IDs.
-- **Public legal repository:** CREATED — `lrodeveloperr/kitchen-prep-board-policies-repo`; GitHub Pages still needs to be enabled/verified.
+- **Public legal repository:** CREATED and public — `lrodeveloperr/kitchen-prep-board-policies-repo`; GitHub Pages is currently not enabled, so the expected `github.io` policy URLs are not yet live.
 - **Native final UI:** BLOCKED — approved HTML visual/workflow source still needs final Compose port, including 31-language resources.
 - **Signed release validation:** BLOCKED — final AAB, signing, install/runtime, billing, UMP and banner behavior must be tested.
 
-## First-use flow required in native Android
+## Launch / contextual prompts
 
-No age gate. Keep first use short:
+Launch directly to **Home**. Do not add marketing onboarding, a language-intro screen or an age gate.
 
-1. **Welcome** — Kitchen Prep Board; local-first; no account; adults 18+; language selection.
-2. **Privacy & ads notice** — kitchen boards remain on device; Google advertising processes device/app-use information; links to Privacy and Terms. Information only, **not** a consent substitute.
-3. **Three-step workflow** — Add/Paste → Tasks → Timing → Live.
-4. Enter Home.
-
-Then request device permissions only in context:
+Request only in context:
 
 - food-safety acknowledgment before first board, not as a launch wall;
 - POST_NOTIFICATIONS when the user first uses timer notifications;
 - exact-alarm special access only when reliable timer behavior genuinely needs it and after explanation;
-- Google UMP handles regional consent/privacy choices.
+- Google UMP handles regional advertising consent/privacy choices independently.
 
 ## Google Play declarations
 
@@ -73,7 +73,7 @@ Then request device permissions only in context:
 ## Advertising release gate
 
 - Owner completes phone/tablet QA before live AdMob IDs are introduced.
-- Replace Google demo IDs with production IDs; production validation must reject demo IDs.
+- Replace Google demo IDs with production IDs; production validation rejects missing/demo/malformed IDs.
 - Configure AdMob Privacy & messaging for EEA/UK/Switzerland and relevant US-state messages.
 - Android 1.0 uses normal **adult** UMP/ad treatment only.
 - Do not force `npa=1` globally; adult requests follow UMP/regional rules.
@@ -105,7 +105,7 @@ Before release:
 - review Google's generated localized storefront prices and adjust selectively later if needed;
 - verify the app shows Google Play's localized `ProductDetails` price and renewal period before purchase;
 - provide Manage subscription;
-- verify purchase, acknowledgment, reconciliation, cancellation and expiry using a Play-track build;
+- verify purchase, acknowledgement, reconciliation, cancellation, expiry, grace period and account-hold behavior using a Play-track build;
 - do not hard-code storefront price in app UI.
 
 ## Permissions release gate
@@ -128,7 +128,7 @@ Do not advertise a fixed country count until the final Play Console country list
 
 Public repo exists: **`lrodeveloperr/kitchen-prep-board-policies-repo`**.
 
-Stable policy pages have been created for Privacy, Terms, Support, Safety, Data Choices and Subscription terms, and the Android BuildConfig is wired to the expected GitHub Pages URLs. GitHub Pages must still be enabled/verified at **main → /docs**.
+Stable source pages exist for Privacy, Terms, Support, Safety, Data Choices and Subscription terms. Android BuildConfig points to the expected GitHub Pages URLs. Repository metadata currently reports **`has_pages: false`**, so the `github.io` URLs are **not yet live**. Enable GitHub Pages once at **Settings → Pages → Deploy from a branch → `main` → `/docs`** and then re-verify every URL before closed testing.
 
 ## EU/EEA + UK representative
 
@@ -144,7 +144,7 @@ Owner does not know the creation date; identity verification occurred **4 August
 2. EU/EEA + UK representative details after appointment.
 3. Production AdMob app ID and banner ID after phone/tablet QA.
 4. In Play Console, create/activate `remove_ads_monthly` → `monthly` at **US$1.49/month**, with no trial/intro offer.
-5. Enable/verify GitHub Pages for `kitchen-prep-board-policies-repo` if not already live.
+5. Enable GitHub Pages for `kitchen-prep-board-policies-repo`, then verify all expected public URLs.
 
 The subscription price decision is no longer open.
 
