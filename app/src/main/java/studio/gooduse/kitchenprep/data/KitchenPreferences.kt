@@ -15,6 +15,8 @@ data class KitchenPreferenceState(
     val settingsReturnState: String = "HOME",
     val entitlementState: String = "UNKNOWN",
     val lastEntitlementVerifiedAt: Long? = null,
+    // Stores only the resolved category; no date of birth is retained.
+    val ageTreatmentState: String = "UNKNOWN",
 )
 
 class KitchenPreferences(private val context: Context) {
@@ -25,6 +27,7 @@ class KitchenPreferences(private val context: Context) {
         val SETTINGS_RETURN = stringPreferencesKey("settings_return_state")
         val ENTITLEMENT = stringPreferencesKey("entitlement_state")
         val ENTITLEMENT_AT = longPreferencesKey("entitlement_verified_at")
+        val AGE_TREATMENT = stringPreferencesKey("age_treatment_state")
     }
 
     val state: Flow<KitchenPreferenceState> = context.kitchenDataStore.data.map { p ->
@@ -35,6 +38,7 @@ class KitchenPreferences(private val context: Context) {
             settingsReturnState = p[Keys.SETTINGS_RETURN] ?: "HOME",
             entitlementState = p[Keys.ENTITLEMENT] ?: "UNKNOWN",
             lastEntitlementVerifiedAt = p[Keys.ENTITLEMENT_AT],
+            ageTreatmentState = p[Keys.AGE_TREATMENT] ?: "UNKNOWN",
         )
     }
 
@@ -42,8 +46,25 @@ class KitchenPreferences(private val context: Context) {
     suspend fun setSafetyAcknowledged(value: Boolean) = context.kitchenDataStore.edit { it[Keys.SAFETY_ACK] = value }
     suspend fun setScreen(value: String) = context.kitchenDataStore.edit { it[Keys.SCREEN] = value }
     suspend fun setSettingsReturn(value: String) = context.kitchenDataStore.edit { it[Keys.SETTINGS_RETURN] = value }
+    suspend fun setAgeTreatment(value: String) = context.kitchenDataStore.edit { p ->
+        require(value in setOf("UNKNOWN", "TEEN", "ADULT", "BLOCKED"))
+        p[Keys.AGE_TREATMENT] = value
+    }
     suspend fun setEntitlement(value: String, verifiedAt: Long = System.currentTimeMillis()) = context.kitchenDataStore.edit {
         it[Keys.ENTITLEMENT] = value
         it[Keys.ENTITLEMENT_AT] = verifiedAt
+    }
+
+    /**
+     * Deletes app-owned local preference/profile state while leaving the Play-derived
+     * entitlement cache in place. Billing reconciliation remains authoritative and
+     * can restore the entitlement even if this cache is later cleared by uninstall.
+     */
+    suspend fun clearLocalAppState() = context.kitchenDataStore.edit { p ->
+        p.remove(Keys.ONBOARDING)
+        p.remove(Keys.SAFETY_ACK)
+        p.remove(Keys.SCREEN)
+        p.remove(Keys.SETTINGS_RETURN)
+        p.remove(Keys.AGE_TREATMENT)
     }
 }
