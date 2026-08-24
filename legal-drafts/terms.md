@@ -6,9 +6,7 @@ These Terms govern use of Kitchen Prep Board, provided by **Lateef Razaq-Oyetola
 
 ## 1. Who the app is for
 
-Kitchen Prep Board is intended for users **aged 16 and over**. The Android release uses a neutral age screen before advertising is initialized. Users below the supported minimum are not admitted to the release app. Users aged 16–17 receive teen advertising treatment and must not receive personalized advertising.
-
-Kitchen Prep Board is a productivity and organization utility for planning and running kitchen-prep work. It is not a medical, food-safety, regulatory-compliance or professional certification service.
+Kitchen Prep Board Android 1.0 is intended and marketed for **adults aged 18 and over**. It is a productivity and organization utility for planning and running kitchen-prep work. It is not a medical, food-safety, regulatory-compliance or professional certification service.
 
 ## 2. License and acceptable use
 
@@ -32,17 +30,15 @@ Any duration, ordering, prep-gap or scheduling suggestion is an aid, not a guara
 
 ## 6. Advertising
 
-The free version may display Google advertising. Advertising availability, personalization and content may vary by age treatment, country, privacy choices and network availability.
+The free version may display Google advertising. Advertising availability and content may vary by country, privacy choices and network availability. Google UMP handles regional advertising privacy choices where required. See the Privacy Policy for more information.
 
-Users aged 16–17 receive teen advertising treatment, which disables personalized advertising and applies additional teen protections. Where Google Play mixed-audience/Families requirements apply, the app must use the required neutral age screen and compatible advertising configuration. Google UMP handles regional advertising privacy choices where required. See the Privacy Policy for more information.
+## 7. Optional monthly remove-ads subscription on Android
 
-## 7. Optional remove-ads subscription on Android
+The Android app may offer an auto-renewing **monthly** subscription that removes ads while the subscription entitlement is active. Before purchase, the app must show the applicable Google Play localized price, billing period, taxes and eligible offer information supplied by Google Play.
 
-The Android app may offer an auto-renewing subscription that removes ads while the subscription entitlement is active. Before purchase, the app must show the applicable Google Play localized price, billing period, taxes and eligible offer information supplied by Google Play.
+The subscription renews automatically each month unless cancelled in accordance with Google Play’s terms. You can manage or cancel it through Google Play. Cancelling stops future renewal but ordinarily does not erase local app data. Refund rights are governed by Google Play policy and any mandatory consumer law that applies to you.
 
-The subscription renews automatically unless cancelled in accordance with Google Play’s terms. You can manage or cancel it through Google Play. Cancelling stops future renewal but ordinarily does not erase local app data. Refund rights are governed by Google Play policy and any mandatory consumer law that applies to you.
-
-The production subscription identifiers, price strategy and any trial/introductory offer remain release configuration items until confirmed in Play Console. The app must not display a hard-coded price that can differ from Google Play’s current localized price.
+The production app must not display a hard-coded price that can differ from Google Play’s current localized price. Any trial or introductory offer must be disclosed exactly as configured in Google Play.
 
 ## 8. App availability and updates
 
@@ -88,4 +84,4 @@ Email: **lrodeveloperr@gmail.com**
 
 ---
 
-This document remains a release draft until the effective date, public URLs, final release-country list, final Play subscription configuration and final signed Android 1.0 build have been verified.
+This document remains a release draft until the effective date, public URLs, final release-country list, final Google Play subscription configuration and final signed Android 1.0 build have been verified.
