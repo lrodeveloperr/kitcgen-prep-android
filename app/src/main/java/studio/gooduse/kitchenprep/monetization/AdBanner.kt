@@ -91,10 +91,6 @@ fun rememberBannerHandle(enabled: Boolean, availableWidthDp: Int): BannerHandle 
         if (adView == null) return@DisposableEffect onDispose { }
 
         var disposed = false
-        lateinit var loadBanner: () -> Unit
-        loadBanner = {
-            if (disposed) return@let
-        }
 
         fun requestBanner() {
             if (disposed) return
