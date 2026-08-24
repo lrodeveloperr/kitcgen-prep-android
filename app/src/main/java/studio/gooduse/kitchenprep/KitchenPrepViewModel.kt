@@ -202,6 +202,8 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
             adRequestAllowed = money.shouldRequestAds && pref.onboardingComplete,
             privacyChoicesRequired = money.privacyOptionsRequired,
             entitlementState = money.entitlement,
+            removeAdsFormattedPrice = money.removeAdsFormattedPrice,
+            removeAdsBillingPeriod = money.removeAdsBillingPeriod,
             settingsReturn = runCatching { BackendState.valueOf(pref.settingsReturnState) }.getOrDefault(BackendState.HOME),
             tasks = tasks,
             prepGaps = gaps,
