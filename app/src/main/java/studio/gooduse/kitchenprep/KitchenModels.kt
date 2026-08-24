@@ -8,6 +8,7 @@ enum class BackendState {
 enum class BoardMode { HOME, STATION }
 enum class TimingMode { COOK_NOW, SERVE_AT, READY_BY }
 enum class TaskStatus { BLOCKED, AVAILABLE, ACTIVE, WAITING, DONE, SKIPPED }
+enum class AgeTreatment { UNKNOWN, TEEN, ADULT, BLOCKED }
 
 data class PrepTask(
     val id:String,
@@ -40,6 +41,7 @@ data class KitchenUiState(
     val backendState:BackendState = BackendState.HOME,
     val onboardingPage:Int = 0,
     val onboardingComplete:Boolean = false,
+    val ageTreatment:AgeTreatment = AgeTreatment.UNKNOWN,
     val safetyDisclosureNeeded:Boolean = true,
     val boardTitle:String = "Dinner prep",
     val sourceText:String = "",
