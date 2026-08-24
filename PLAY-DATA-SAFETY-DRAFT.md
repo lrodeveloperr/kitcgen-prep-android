@@ -6,7 +6,7 @@ This is a working declaration aid, not a substitute for completing Play Console 
 
 Core kitchen-board data is local-first. The current Android architecture does not transmit ordinary board/task/template/quantity/timer/note/reference-URL content to a GoodUse Studios server because no developer-operated cloud backend is present.
 
-The release also resolves an **age-treatment category** before advertising. The user enters a date of birth locally; the date itself is discarded after the app derives one of `TEEN`, `ADULT`, or `BLOCKED`. Only the derived category is stored in app-private preferences. It is used to select compliant Google advertising treatment and is not sent to a GoodUse Studios server.
+Android 1.0 is intended for **adults 18+ only**. The app does not collect or store a date of birth and does not implement child/teen advertising treatment.
 
 ## Third-party SDK data that must be reflected
 
@@ -18,14 +18,6 @@ The production build uses Google Mobile Ads / AdMob and Google UMP. Google’s M
 - device or other identifiers, including advertising-related identifiers where available and permitted.
 
 Expected purposes include advertising/marketing, measurement, security and fraud prevention. The exact Play Console categories and sharing flags must be mapped to Google’s then-current SDK disclosure and the final configuration.
-
-### Age treatment
-
-- **16–17:** Google Mobile Ads `AgeRestrictedTreatment.TEEN`; no personalized ads/remarketing; teen protections apply.
-- **18+:** adult/unspecified age-restricted treatment; Google UMP and regional privacy choices determine the permitted ad-serving mode.
-- **Under 16:** Android 1.0 blocks entry and does not initialize UMP/Mobile Ads.
-
-Google UMP is tagged conservatively as under-age-of-consent for the 16–17 category. The Mobile Ads age-treatment signal is set separately because UMP does not automatically forward its under-age tag to Mobile Ads.
 
 ## Google Play Billing
 
@@ -55,20 +47,15 @@ If Firebase Crashlytics, Firebase Analytics or any other diagnostic/analytics SD
 
 1. **Location — approximate/general location**: advertising SDK may derive general location from IP.
 2. **App activity — app interactions**: advertising/measurement SDK activity.
-3. **App info and performance — diagnostics**: SDK diagnostic information.
-4. **Device or other IDs**: advertising/device identifiers where age treatment, device settings, law and Google configuration permit.
+3. **App info and performance — diagnostics**: advertising SDK diagnostic information and any Play-defined diagnostics that must be disclosed.
+4. **Device or other IDs**: advertising/device identifiers where device settings, law and Google configuration permit.
 
 For each category, verify:
 
 - collected and/or shared;
 - required vs optional under Google’s current Data safety definitions;
-- exact purposes;
-- whether collection differs for TEEN versus ADULT age treatment; and
+- exact purposes; and
 - whether UMP/privacy choices alter collection/processing in a way Play expects disclosed.
-
-## Local age category
-
-The app-owned derived age-treatment category should be reassessed under Play’s exact current data-type definitions immediately before form submission. It is stored locally and not sent to GoodUse Studios; however the corresponding age **signal** is supplied to Google ad/consent SDKs to obtain age-appropriate treatment. Do not describe the app as collecting a date of birth: the entered date is not retained.
 
 ## Must be re-audited if any of these are added
 
@@ -79,8 +66,7 @@ The app-owned derived age-treatment category should be reassessed under Play’s
 - remote export/import;
 - personalized recommendation backend;
 - location, camera, microphone, contacts or media permissions;
-- new advertising SDKs or ad formats;
-- server-side purchase verification; or
-- a change to the 16+ audience/age-treatment model.
+- new advertising SDKs or ad formats; or
+- server-side purchase verification.
 
-Final step: compare this draft, the public Privacy Policy, Google’s SDK disclosures, the final Play target-audience/Families declarations and the final signed AAB immediately before completing Play Console Data safety.
+Final step: compare this draft, the public Privacy Policy, Google’s SDK disclosures and the final signed AAB immediately before completing Play Console Data safety.
