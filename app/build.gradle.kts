@@ -13,24 +13,22 @@ android {
         applicationId = "studio.gooduse.kitchenprep"
         minSdk = 23
         targetSdk = 36
-        // Keep versionCode monotonic. Verify 3 is unused in Play before production;
-        // if it has already been uploaded, replace it with the next unused integer.
+        // No prior APK/AAB has been uploaded per owner confirmation. Keep monotonic.
         versionCode = 3
         versionName = "1.0.0"
 
-        // Replace these in local.properties/Gradle properties or CI for production.
+        // Replace Google demo IDs with production IDs after phone/tablet QA.
         manifestPlaceholders["ADMOB_APP_ID"] = providers.gradleProperty("ADMOB_APP_ID")
             .orElse("ca-app-pub-3940256099942544~3347511713").get()
         buildConfigField("String", "ADMOB_BANNER_ID", "\"" + providers.gradleProperty("ADMOB_BANNER_ID")
             .orElse("ca-app-pub-3940256099942544/9214589741").get() + "\"")
 
-        // Public HTTPS release destinations. Keep empty in development until the
-        // approved legal site is published. Production validation must reject empties.
-        buildConfigField("String", "PRIVACY_POLICY_URL", "\"" + providers.gradleProperty("PRIVACY_POLICY_URL").orElse("").get() + "\"")
-        buildConfigField("String", "TERMS_URL", "\"" + providers.gradleProperty("TERMS_URL").orElse("").get() + "\"")
-        buildConfigField("String", "SUPPORT_URL", "\"" + providers.gradleProperty("SUPPORT_URL").orElse("").get() + "\"")
-        buildConfigField("String", "SAFETY_URL", "\"" + providers.gradleProperty("SAFETY_URL").orElse("").get() + "\"")
-        buildConfigField("String", "SUBSCRIPTION_TERMS_URL", "\"" + providers.gradleProperty("SUBSCRIPTION_TERMS_URL").orElse("").get() + "\"")
+        val legalBase = "https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo"
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"" + providers.gradleProperty("PRIVACY_POLICY_URL").orElse("$legalBase/privacy/").get() + "\"")
+        buildConfigField("String", "TERMS_URL", "\"" + providers.gradleProperty("TERMS_URL").orElse("$legalBase/terms/").get() + "\"")
+        buildConfigField("String", "SUPPORT_URL", "\"" + providers.gradleProperty("SUPPORT_URL").orElse("$legalBase/support/").get() + "\"")
+        buildConfigField("String", "SAFETY_URL", "\"" + providers.gradleProperty("SAFETY_URL").orElse("$legalBase/safety/").get() + "\"")
+        buildConfigField("String", "SUBSCRIPTION_TERMS_URL", "\"" + providers.gradleProperty("SUBSCRIPTION_TERMS_URL").orElse("$legalBase/subscription/").get() + "\"")
     }
 
     compileOptions {
