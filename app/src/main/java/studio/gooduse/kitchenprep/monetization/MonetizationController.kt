@@ -39,6 +39,7 @@ class MonetizationController(
     private var activityRef: WeakReference<Activity>? = null
     private var started = false
     private var connectionInProgress = false
+    private var purchaseQueryGeneration = 0L
     private val afterConnected = mutableListOf<() -> Unit>()
 
     private val _state = MutableStateFlow(MonetizationState())
@@ -53,7 +54,10 @@ class MonetizationController(
     init {
         scope.launch {
             preferences.state.collect { p ->
-                if (_state.value.entitlement != p.entitlementState) {
+                // The preference is only a cold-start cache. Once the controller has
+                // any in-process entitlement result, an older DataStore emission must
+                // never overwrite it.
+                if (_state.value.entitlement == "UNKNOWN") {
                     _state.value = _state.value.copy(entitlement = p.entitlementState)
                 }
             }
@@ -138,8 +142,12 @@ class MonetizationController(
     override fun onPurchasesUpdated(result: BillingResult, purchases: List<Purchase>?) {
         _state.value = _state.value.copy(purchaseInProgress = false)
         when {
-            result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null ->
+            result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null -> {
+                // Invalidate any older in-flight FREE query before applying this
+                // user-initiated purchase result.
+                purchaseQueryGeneration++
                 processPurchases(purchases, confirmedQuery = false)
+            }
 
             result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED ->
                 _state.value = _state.value.copy(lastError = null)
@@ -207,14 +215,15 @@ class MonetizationController(
                 _state.value = _state.value.copy(
                     removeAdsFormattedPrice = phase?.formattedPrice,
                     removeAdsBillingPeriod = phase?.billingPeriod,
-                    lastError = null,
                 )
             },
-            onUnavailable = { message ->
+            onUnavailable = {
+                // Background catalog refresh failure should not interrupt normal app
+                // use. A user-initiated purchase performs the same strict query and
+                // surfaces a useful message if it still fails.
                 _state.value = _state.value.copy(
                     removeAdsFormattedPrice = null,
                     removeAdsBillingPeriod = null,
-                    lastError = message,
                 )
             },
         )
@@ -261,10 +270,15 @@ class MonetizationController(
             return
         }
 
+        val generation = ++purchaseQueryGeneration
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
         billingClient.queryPurchasesAsync(params) { result, purchases ->
+            // Ignore stale callbacks. This prevents an older pre-purchase FREE query
+            // from racing a newer subscriber result and re-enabling ads.
+            if (generation != purchaseQueryGeneration) return@queryPurchasesAsync
+
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                 processPurchases(purchases, confirmedQuery = true)
             } else {
@@ -359,12 +373,15 @@ class MonetizationController(
     }
 
     private fun applyConsentState(errorMessage: String?) {
+        val canRequestAds = consentInformation.canRequestAds()
         _state.value = _state.value.copy(
-            canRequestAds = consentInformation.canRequestAds(),
+            canRequestAds = canRequestAds,
             privacyOptionsRequired =
                 consentInformation.privacyOptionsRequirementStatus ==
                     ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED,
-            lastError = errorMessage,
+            // A recoverable UMP error should not interrupt the user when a valid
+            // previous-session consent state still permits ads.
+            lastError = if (errorMessage != null && !canRequestAds) errorMessage else null,
         )
     }
 
