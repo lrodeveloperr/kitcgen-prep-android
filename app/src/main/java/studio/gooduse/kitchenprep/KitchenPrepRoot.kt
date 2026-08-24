@@ -54,7 +54,9 @@ fun KitchenPrepRoot(
         ageTreatment = state.ageTreatment,
     )
     GoodUseFrame(
-        bottomRail = if (banner.loaded) ({ LoadedBannerRail(banner) }) else null
+        // Reserve the bottom rail as soon as an ad request is permitted; don't wait
+        // for onAdLoaded, which would shift the app when the banner arrives.
+        bottomRail = if (state.adRequestAllowed) ({ LoadedBannerRail(banner) }) else null
     ) {
         when {
             state.ageTreatment == AgeTreatment.UNKNOWN -> NeutralAgeGate(blocked = false) {
