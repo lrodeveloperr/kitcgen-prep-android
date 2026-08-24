@@ -13,8 +13,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * Store-readiness Settings route. Root intercepts SETTINGS and shows this instead
- * of the older placeholder Settings screen while this release branch is under review.
+ * Store-readiness Settings route. The remove-ads row displays pricing returned by
+ * Google Play ProductDetails. The US launch base is $1.49/month, but the UI never
+ * hard-codes that storefront price because Google Play localizes price/currency.
  */
 @Composable
 fun StoreReadySettingsScreen(s: KitchenUiState, dispatch: (String, String?) -> Unit) {
@@ -31,6 +32,15 @@ fun StoreReadySettingsScreen(s: KitchenUiState, dispatch: (String, String?) -> U
             "https://play.google.com/store/account/subscriptions?sku=remove_ads_monthly&package=${context.packageName}"
         )
         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+    }
+
+    val priceDetail = when {
+        s.removeAdsFormattedPrice != null && s.removeAdsBillingPeriod == "P1M" ->
+            "${s.removeAdsFormattedPrice} per month · auto-renewing"
+        s.removeAdsFormattedPrice != null ->
+            "${s.removeAdsFormattedPrice} · auto-renewing subscription"
+        else ->
+            "Monthly auto-renewing subscription. Google Play will show the localized price before purchase."
     }
 
     LazyColumn(
@@ -74,7 +84,7 @@ fun StoreReadySettingsScreen(s: KitchenUiState, dispatch: (String, String?) -> U
                     StoreLinkRow(
                         "Remove ads",
                         true,
-                        "Monthly auto-renewing subscription. Google Play shows the localized price and renewal terms before purchase.",
+                        priceDetail,
                     ) { dispatch("REMOVE_ADS", null) }
                 }
                 HorizontalDivider()
