@@ -1,0 +1,18 @@
+{
+  "appId": "kitchen-prep-board",
+  "platform": "android",
+  "status": "LATEST",
+  "version": "v1",
+  "publishedDate": "2026-08-24",
+  "canonicalArtifact": "Kitchen-Prep-Board-Jetpack-Skin-v1.zip",
+  "artifactSha256": "84489b360d2b939423de72a01aea1173926da1f2c3dbe75040cbceb8d77d89de",
+  "backendSchemaVersion": "1.1.0",
+  "backendSha256": "431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b",
+  "uiContract": "KitchenPrepBoard-UI-Contract-v1.0.0.json",
+  "uiContractSha256": "abf1e006048185aa2df4cb8a5843c423eab5e0821c34fbc47e84d41c50169cb5",
+  "verification": "KitchenPrepBoard-Skin-Verification.json",
+  "verificationSha256": "e5b47d035616b1cc901d51b0390fa55c9b46d7940b12631c4e8efcd65bef8731",
+  "previousMain": "2e179525e8928f0cb65e6614de6c5e24b82c5a6f",
+  "sourceType": "versioned-source-package",
+  "note": "This ZIP is the canonical latest Android source package. Earlier exploded implementations remain available in Git history."
+}

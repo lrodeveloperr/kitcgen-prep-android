@@ -1,0 +1,420 @@
+{
+  "contractVersion": "1.0.0",
+  "generatedAt": "2026-08-23T21:55:00-04:00",
+  "appId": "kitchen-prep-board",
+  "appName": "Kitchen Prep Board — Personal Station Workbench",
+  "authorities": {
+    "backend": {
+      "file": "Kitchen-Prep-Board-Android-Backend-v1.1.0.json",
+      "sha256": "431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b",
+      "schemaVersion": "1.1.0",
+      "stateMachineAuthoritative": true
+    },
+    "appOpportunitiesWorkbook": {
+      "spreadsheetId": "1S5-O6T5JS-09bxyL3t_5OGis9ycGMbIPF_A9RQBgyGQ",
+      "title": "App Opportunity Portfolio & Store Guardrails 2026",
+      "guidanceRoute": [
+        "AGR-00",
+        "AGR-03",
+        "AGR-04",
+        "AGR-07",
+        "AGR-18"
+      ],
+      "rules": [
+        "GOODUSE_NATIVE_SHELL_V1",
+        "IN_APP_IMAGE_BAN_V1",
+        "GOODUSE_ICON_REGISTRY_1.1.0",
+        "GOODUSE_BOTTOM_BANNER_V2",
+        "RESPONSIVE_SCALING_STANDARD",
+        "TASK_FIRST_UI_COMPLEXITY_BUDGET",
+        "UI_HYGIENE_THRESHOLD",
+        "DUAL_NATIVE_PORTABILITY"
+      ]
+    },
+    "shells": {
+      "android": {
+        "repo": "lrodeveloperr/Jetpack-android-shell",
+        "version": "1.3.0",
+        "commit": "51ab08460baef66a473d7e74a8c6c80c3295b906",
+        "compileSdk": 37,
+        "composeBom": "2026.08.00",
+        "agp": "9.3.1",
+        "kotlin": "2.3.21",
+        "jdk": 17
+      },
+      "ios": {
+        "repo": "lrodeveloperr/Swift-UI-shell-ios",
+        "version": "1.3.0",
+        "commit": "8a992eaa2844cbe53d675bb4b2869c194bf38b8e",
+        "minimumIOS": "16.0"
+      }
+    }
+  },
+  "conceptClass": "SYSTEM_GENERATED_DIRECTION",
+  "previousDesigns": "IGNORED_BY_USER_INSTRUCTION",
+  "shellMode": "FOCUSED_TASK",
+  "designIntent": {
+    "name": "Calm Workbench",
+    "principle": "The current task, timing pressure and next action dominate. UI recedes.",
+    "imagePolicy": "NO_RUNTIME_IMAGES",
+    "cardPolicy": "Use surfaces only to separate materially different work states; no card wall.",
+    "motion": "MINIMAL",
+    "depth": "LOW",
+    "dynamicColor": false
+  },
+  "theme": {
+    "light": {
+      "canvas": "#F5F7F8",
+      "surface": "#FFFFFF",
+      "surfaceRaised": "#EDF3F5",
+      "primary": "#215B7A",
+      "onPrimary": "#FFFFFF",
+      "textPrimary": "#13232D",
+      "textSecondary": "#51636D",
+      "border": "#CDD9DE",
+      "success": "#2E7259",
+      "warning": "#9A6508",
+      "error": "#A74343"
+    },
+    "dark": {
+      "canvas": "#0E1519",
+      "surface": "#162128",
+      "surfaceRaised": "#1D2B33",
+      "primary": "#8FC8E8",
+      "onPrimary": "#08202D",
+      "textPrimary": "#EDF4F7",
+      "textSecondary": "#B8C7CE",
+      "border": "#40515B",
+      "success": "#72C19A",
+      "warning": "#E4B65E",
+      "error": "#E08C8C"
+    },
+    "spacing": {
+      "xxs": 4,
+      "xs": 8,
+      "small": 12,
+      "medium": 16,
+      "large": 24,
+      "xl": 32
+    },
+    "radius": {
+      "small": 12,
+      "medium": 16,
+      "large": 20
+    },
+    "typography": {
+      "display": {
+        "androidSp": 30,
+        "iosPt": 30,
+        "lineHeight": 36,
+        "weight": "SEMIBOLD"
+      },
+      "title": {
+        "androidSp": 21,
+        "iosPt": 21,
+        "lineHeight": 27,
+        "weight": "SEMIBOLD"
+      },
+      "body": {
+        "androidSp": 16,
+        "iosPt": 16,
+        "lineHeight": 23,
+        "weight": "REGULAR"
+      },
+      "label": {
+        "androidSp": 14,
+        "iosPt": 14,
+        "lineHeight": 19,
+        "weight": "MEDIUM"
+      },
+      "metric": {
+        "androidSp": 28,
+        "iosPt": 28,
+        "lineHeight": 32,
+        "weight": "BOLD"
+      }
+    }
+  },
+  "responsive": {
+    "android": [
+      {
+        "min": 0,
+        "max": 359,
+        "gutter": 12,
+        "layout": "single"
+      },
+      {
+        "min": 360,
+        "max": 599,
+        "gutter": 16,
+        "layout": "single"
+      },
+      {
+        "min": 600,
+        "max": 839,
+        "gutter": 24,
+        "layout": "single_or_two_pane"
+      },
+      {
+        "min": 840,
+        "max": 1199,
+        "gutter": 32,
+        "layout": "board_three_lane"
+      },
+      {
+        "min": 1200,
+        "max": 1599,
+        "gutter": 40,
+        "layout": "board_three_lane",
+        "shellCap": 1440
+      },
+      {
+        "min": 1600,
+        "max": null,
+        "gutter": 48,
+        "layout": "board_three_lane",
+        "shellCap": 1440
+      }
+    ],
+    "ios": [
+      {
+        "min": 0,
+        "max": 359,
+        "gutter": 12,
+        "layout": "single"
+      },
+      {
+        "min": 360,
+        "max": 599,
+        "gutter": 16,
+        "layout": "single"
+      },
+      {
+        "min": 600,
+        "max": 899,
+        "gutter": 24,
+        "layout": "single_or_two_pane"
+      },
+      {
+        "min": 900,
+        "max": 1199,
+        "gutter": 32,
+        "layout": "board_three_lane"
+      },
+      {
+        "min": 1200,
+        "max": null,
+        "gutter": 40,
+        "layout": "board_three_lane",
+        "shellCap": 1360
+      }
+    ],
+    "rules": [
+      "REFLOW_NEVER_ZOOM",
+      "NO_PRIMARY_HORIZONTAL_SCROLL",
+      "LARGE_TEXT_REFLOW",
+      "RTL_SAFE"
+    ]
+  },
+  "onboarding": {
+    "profile": "PROFESSIONAL_WORKBENCH",
+    "pages": [
+      {
+        "id": "WELCOME",
+        "title": "Prep without the scramble",
+        "body": "See what to do now, what comes next, and what needs attention—without turning your station into restaurant software.",
+        "ads": false
+      },
+      {
+        "id": "QUICK_START",
+        "title": "A board in three moves",
+        "steps": [
+          "Add or paste your tasks",
+          "Choose Home or Station mode",
+          "Choose Cook now, Serve at, or Ready by, then run the board"
+        ],
+        "ads": false
+      }
+    ],
+    "languagePickerAtColdStart": false,
+    "removeAdsPitch": false,
+    "safetyDisclosure": {
+      "trigger": "FIRST_BOARD_CREATION",
+      "copy": "This app is an organizational aid only. It does not guarantee food safety or doneness."
+    }
+  },
+  "screens": [
+    {
+      "backendState": "HOME",
+      "id": "home",
+      "kind": "DASHBOARD",
+      "composition": "STACK",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "CREATE_BOARD",
+      "id": "create",
+      "kind": "FORM",
+      "composition": "FORM",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "QUICK_REVIEW",
+      "id": "review",
+      "kind": "FORM",
+      "composition": "LIST",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "SELECT_MODE",
+      "id": "mode",
+      "kind": "FORM",
+      "composition": "STACK",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "MODE_SPECIFIC_SETUP",
+      "id": "mode-setup",
+      "kind": "FORM",
+      "composition": "STACK",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "PREP_GAP",
+      "id": "prep-gap",
+      "kind": "WORKBENCH",
+      "composition": "LIST",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "TIMING_OBJECTIVE",
+      "id": "timing",
+      "kind": "FORM",
+      "composition": "STACK",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "BUILD_EXECUTION_GRAPH",
+      "id": "build",
+      "kind": "WORKBENCH",
+      "composition": "STACK",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "READY_OVERVIEW",
+      "id": "ready",
+      "kind": "WORKBENCH",
+      "composition": "TIMELINE",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "RUN_BOARD",
+      "id": "run",
+      "kind": "WORKBENCH",
+      "composition": "BOARD",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "PAUSED_BOARD",
+      "id": "paused",
+      "kind": "WORKBENCH",
+      "composition": "BOARD",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "FINISH",
+      "id": "finish",
+      "kind": "WORKBENCH",
+      "composition": "STACK",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "REUSE_OR_HOME",
+      "id": "reuse",
+      "kind": "WORKBENCH",
+      "composition": "STACK",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    },
+    {
+      "backendState": "SETTINGS",
+      "id": "settings",
+      "kind": "SETTINGS",
+      "composition": "LIST",
+      "imageSlots": 0,
+      "primaryActionRule": "ONE_DOMINANT_ACTION_WHEN_COMMIT_IS_AVAILABLE"
+    }
+  ],
+  "runBoard": {
+    "compactOrder": [
+      "NOW",
+      "WAITING",
+      "NEXT",
+      "DONE"
+    ],
+    "wideLanes": [
+      "NOW",
+      "NEXT",
+      "WAITING"
+    ],
+    "done": "COLLAPSIBLE_TRAILING_SECTION",
+    "timerExpiryLabel": "Attention required",
+    "pauseNote": "Pausing the board does not pause or extend existing timer deadlines."
+  },
+  "iconMap": {
+    "start": "CTRL_START_RUN/play",
+    "pause": "CTRL_PAUSE/pause",
+    "resume": "CTRL_RESUME/resume",
+    "stop": "CTRL_STOP/stop",
+    "complete": "CTRL_COMPLETE/complete",
+    "save": "ACT_SAVE/check",
+    "settings": "NAV_SETTINGS/settings",
+    "add": "ACT_ADD/plus",
+    "history": "TIME_HISTORY/history"
+  },
+  "ads": {
+    "android": {
+      "enabled": true,
+      "format": "anchored_adaptive_banner",
+      "placement": "persistent_bottom_banner_slot",
+      "personalized": false,
+      "implementationBoundary": "SDK adapter only; skin reserves no permanent blank strip and never overlays work.",
+      "backendAuthoritativeLoadingConflict": {
+        "backend": "reserveLayoutSpaceOnlyWhenAdLoaded=true",
+        "generalGoodUse": "bounded loading may reserve adaptive rail",
+        "resolution": "BACKEND_WINS_FOR_THIS_APP: rail is 0 until an ad is actually loaded; loaded rail participates in safe layout."
+      }
+    },
+    "ios": {
+      "enabled": false,
+      "reason": "Android backend spec defines Google AdMob/UMP/Play Billing only; no iOS monetization backend was supplied."
+    }
+  },
+  "platformCapabilityBoundary": {
+    "androidShareText": "ANDROID_ONLY_AS_SPECIFIED",
+    "iosShareIngress": "NOT_INVENTED",
+    "androidBilling": "remove_ads_monthly / $1.49 USD base / Google Play",
+    "iosBilling": "NOT_DEFINED_IN_SOURCE_SPEC"
+  },
+  "acceptance": {
+    "imageBan": "PASS_REQUIRED",
+    "peerScale": "PASS_REQUIRED",
+    "darkLight": "PASS_REQUIRED",
+    "largeText": "PASS_REQUIRED",
+    "rtl": "PASS_REQUIRED",
+    "androidCompile": "ATTEMPT_IF_TOOLCHAIN_AVAILABLE",
+    "iosCompile": "UNAVAILABLE_WITHOUT_APPLE_SWIFTUI_TOOLCHAIN"
+  }
+}

@@ -1,14 +1,13 @@
-# Kitchen Prep Board — Android
+# Kitchen Prep Board — Android Latest Version
 
-Fresh native **Sage Station** Kotlin/Jetpack Compose skin and workflow baseline for Kitchen Prep Board — Personal Station Workbench.
+`main` intentionally points to the canonical latest Android source package for Kitchen Prep Board.
 
-Authority:
-- App ID: `kitchen-prep-board`
-- Frozen backend SHA-256: `431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b`
-- Supplied Sage Station complete-screen-pack SHA-256: `d2c94eb77c8db9d818cce7365f26b03cdeea03492e24611e3872b24355dc19a9`
-- UI: Kotlin + Jetpack Compose / Material 3
-- Core interaction baseline: local-first; no account/cloud/server dependency
+- Canonical package: `Kitchen-Prep-Board-Jetpack-Skin-v1.zip`
+- Backend contract: v1.1.0, embedded in the package
+- Shared UI contract: `KitchenPrepBoard-UI-Contract-v1.0.0.json`
+- Verification: `KitchenPrepBoard-Skin-Verification.json`
+- Package SHA-256: `84489b360d2b939423de72a01aea1173926da1f2c3dbe75040cbceb8d77d89de`
 
-Release integration still needs the production Room/AlarmManager/AdMob/UMP/Play Billing adapters and full locale resources required by the frozen backend before a store build can be certified.
+Extract the ZIP to build or inspect the current source. Previous implementations—including the superseded image-bearing skin—remain available in Git history and are not current authority.
 
-No push-triggered GitHub Action is included. Pushing source does not automatically consume CI minutes or publish to a store.
+The package is the presentation skin plus backend presentation port against the supplied implementation-ready backend specification; it does not fabricate missing production Room/timer/AdMob/UMP/Play Billing implementation.

@@ -1,0 +1,67 @@
+{
+  "reportVersion": "1.0.0",
+  "appId": "kitchen-prep-board",
+  "backendSha256": "431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b",
+  "authoritativeBackendSchema": "1.1.0",
+  "uiContract": "KitchenPrepBoard-UI-Contract-v1.0.0.json",
+  "shellProvenance": {
+    "android": {
+      "version": "1.3.0",
+      "commit": "51ab08460baef66a473d7e74a8c6c80c3295b906"
+    },
+    "ios": {
+      "version": "1.3.0",
+      "commit": "8a992eaa2844cbe53d675bb4b2869c194bf38b8e"
+    }
+  },
+  "checks": {
+    "backend_ui_state_coverage": {
+      "status": "PASS",
+      "count": 14
+    },
+    "android_image_ban": {
+      "status": "PASS",
+      "raster_assets": 0,
+      "Image_or_AsyncImage_calls": 0
+    },
+    "ios_image_ban": {
+      "status": "PASS",
+      "raster_assets": 0,
+      "Image_or_AsyncImage_calls": 0
+    },
+    "zip_integrity": {
+      "status": "PASS",
+      "packages": 3
+    },
+    "swift_package_manifest": {
+      "status": "PASS"
+    },
+    "swift_syntax_parse": {
+      "status": "PASS",
+      "toolchain": "Swift 6.2.1 Linux parser"
+    },
+    "kotlin_parser_syntax_diagnostics": {
+      "status": "PASS",
+      "note": "Semantic Android/Compose resolution was not attempted without Android classpath."
+    },
+    "android_full_compile": {
+      "status": "UNAVAILABLE",
+      "reason": "No Gradle executable and no ANDROID_HOME/ANDROID_SDK_ROOT in this environment."
+    },
+    "android_runtime_render": {
+      "status": "UNAVAILABLE",
+      "reason": "No Android SDK/emulator in this environment."
+    },
+    "ios_swiftui_typecheck_render": {
+      "status": "UNAVAILABLE",
+      "reason": "Apple SwiftUI frameworks/Xcode are not available on Linux."
+    }
+  },
+  "source_boundaries": [
+    "The supplied backend file is an implementation-ready JSON specification, not executable Kotlin backend source.",
+    "The Jetpack package supplies a presentation port plus deterministic preview backend; it does not fabricate the production Room/scheduler/timer/AdMob/UMP/Play Billing implementation.",
+    "The SwiftUI package mirrors the app-owned UI/workflow contract but does not invent iOS share ingress, StoreKit products, AdMob iOS behavior, or Apple background behavior absent from the authoritative Android backend.",
+    "For ad layout, the app-specific backend rule reserveLayoutSpaceOnlyWhenAdLoaded=true overrides the general shell loading-reservation default; the skin collapses the rail until loaded."
+  ],
+  "handoffStatus": "SOURCE_READY_FOR_NATIVE_TOOLCHAIN_BUILD"
+}
