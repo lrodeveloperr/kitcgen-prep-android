@@ -51,6 +51,12 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
         viewModelScope.launch {
             actionMutex.withLock {
                 when (action) {
+                    "AGE_RESOLVED" -> {
+                        val category = payload.orEmpty().uppercase()
+                        if (category in setOf("TEEN", "ADULT", "BLOCKED")) {
+                            preferences.setAgeTreatment(category)
+                        }
+                    }
                     "ONBOARD_NEXT" -> {
                         if (onboardingPage < 1) onboardingPage++ else preferences.setOnboardingComplete(true)
                         mutable.value = mutable.value.copy(onboardingPage = onboardingPage)
@@ -118,7 +124,7 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
                     "REMOVE_ADS" -> monetization.purchaseRemoveAds()
                     "DELETE_LOCAL_DATA" -> {
                         repository.deleteAllLocalData()
-                        preferences.setScreen(BackendState.HOME.name)
+                        preferences.clearLocalAppState()
                         mutable.value = mutable.value.copy(userMessage = "Local app data deleted. Any Play subscription remains separate.")
                     }
                     "CANCEL_BOARD" -> { repository.cancelBoard(); preferences.setScreen(BackendState.HOME.name) }
@@ -126,7 +132,6 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
             }
         }
     }
-
 
     private suspend fun handleStartTask(taskId: String, allowDependencyOverride: Boolean) {
         when (repository.startTask(taskId, allowDependencyOverride)) {
@@ -187,10 +192,12 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
         val recent = snapshot.recentBoards.filter { it.status in setOf("COMPLETED", "ARCHIVED_INCOMPLETE") }.map {
             RecentBoardUi(it.id, it.title, it.status)
         }
+        val ageTreatment = runCatching { AgeTreatment.valueOf(pref.ageTreatmentState) }.getOrDefault(AgeTreatment.UNKNOWN)
         return KitchenUiState(
             backendState = resolvedScreen,
             onboardingPage = onboardingPage,
             onboardingComplete = pref.onboardingComplete,
+            ageTreatment = ageTreatment,
             safetyDisclosureNeeded = !pref.safetyAcknowledged,
             boardTitle = board?.title ?: "Dinner prep",
             sourceText = board?.draftText.orEmpty(),
@@ -200,7 +207,7 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
             timing = board?.timingMode?.let { runCatching { TimingMode.valueOf(it) }.getOrNull() },
             targetReadyAt = board?.targetReadyAt,
             paused = board?.status == "PAUSED",
-            adRequestAllowed = money.shouldRequestAds && pref.onboardingComplete,
+            adRequestAllowed = money.shouldRequestAds && pref.onboardingComplete && ageTreatment in setOf(AgeTreatment.TEEN, AgeTreatment.ADULT),
             privacyChoicesRequired = money.privacyOptionsRequired,
             entitlementState = money.entitlement,
             settingsReturn = runCatching { BackendState.valueOf(pref.settingsReturnState) }.getOrDefault(BackendState.HOME),
