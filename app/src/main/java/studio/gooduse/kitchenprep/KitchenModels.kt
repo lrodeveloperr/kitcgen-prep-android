@@ -55,6 +55,7 @@ data class KitchenUiState(
     val entitlementState:String = "UNKNOWN",
     val removeAdsFormattedPrice:String? = null,
     val removeAdsBillingPeriod:String? = null,
+    val purchaseInProgress:Boolean = false,
     val settingsReturn:BackendState = BackendState.HOME,
     val tasks:List<PrepTask> = emptyList(),
     val prepGaps:List<PrepGapUi> = emptyList(),
