@@ -24,51 +24,37 @@ fun KitchenPrepRoot(
     val lifecycleOwner = LocalLifecycleOwner.current
     var storeIntroPage by rememberSaveable { mutableIntStateOf(0) }
 
-    val ageResolved = state.ageTreatment == AgeTreatment.TEEN || state.ageTreatment == AgeTreatment.ADULT
-
-    // No UMP, Billing connection, or Mobile Ads initialization occurs until the app
-    // has resolved an admitted age-treatment category and completed the short app-owned
-    // first-use privacy notice. The entered date of birth is never persisted.
-    LaunchedEffect(context, state.onboardingComplete, state.ageTreatment) {
-        if (state.onboardingComplete && ageResolved) {
-            context.findActivity()?.let(resolvedBackend::attachActivity)
-        }
+    // Android 1.0 is declared and marketed for adults 18+ only. No date-of-birth
+    // collection or mixed-audience/teen ad path is implemented. UMP/Billing/Ads are
+    // attached only after the short app-owned first-use notice is complete.
+    LaunchedEffect(context, state.onboardingComplete) {
+        if (state.onboardingComplete) context.findActivity()?.let(resolvedBackend::attachActivity)
     }
-    LaunchedEffect(initialSharedText) {
-        if (!initialSharedText.isNullOrBlank() && ageResolved && state.onboardingComplete) {
+    LaunchedEffect(initialSharedText, state.onboardingComplete) {
+        if (!initialSharedText.isNullOrBlank() && state.onboardingComplete) {
             resolvedBackend.acceptSharedText(initialSharedText)
         }
     }
-    DisposableEffect(lifecycleOwner, resolvedBackend, state.onboardingComplete, state.ageTreatment) {
+    DisposableEffect(lifecycleOwner, resolvedBackend, state.onboardingComplete) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && state.onboardingComplete && ageResolved) {
-                resolvedBackend.onForeground()
-            }
+            if (event == Lifecycle.Event.ON_RESUME && state.onboardingComplete) resolvedBackend.onForeground()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val banner = rememberBannerHandle(
-        enabled = state.adRequestAllowed,
-        ageTreatment = state.ageTreatment,
-    )
+    val banner = rememberBannerHandle(enabled = state.adRequestAllowed)
     GoodUseFrame(
-        // Reserve the bottom rail as soon as an ad request is permitted; don't wait
-        // for onAdLoaded, which would shift the app when the banner arrives.
+        // Reserve the bottom rail as soon as ads are allowed so banner load never
+        // shifts the app. The visual shell adds a non-interactive gap from navigation.
         bottomRail = if (state.adRequestAllowed) ({ LoadedBannerRail(banner) }) else null
     ) {
         when {
-            state.ageTreatment == AgeTreatment.UNKNOWN -> NeutralAgeGate(blocked = false) {
-                resolvedBackend.dispatch("AGE_RESOLVED", it.name)
-            }
-            state.ageTreatment == AgeTreatment.BLOCKED -> NeutralAgeGate(blocked = true) { }
             !state.onboardingComplete -> StoreReadyFirstUse(storeIntroPage) {
                 if (storeIntroPage < 2) {
                     storeIntroPage++
                 } else {
-                    // Legacy backend persists onboarding completion after two ONBOARD_NEXT
-                    // actions. Keep that storage contract unchanged for this branch.
+                    // Legacy backend persists onboarding completion after two actions.
                     resolvedBackend.dispatch("ONBOARD_NEXT")
                     resolvedBackend.dispatch("ONBOARD_NEXT")
                 }
@@ -88,7 +74,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=412,heightDp=915,showBackground=true)
 @Composable private fun CompactPreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("AGE_RESOLVED","ADULT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")
@@ -98,7 +84,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=1024,heightDp=768,showBackground=true)
 @Composable private fun WidePreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("AGE_RESOLVED","ADULT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")
