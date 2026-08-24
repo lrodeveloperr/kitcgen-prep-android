@@ -5,6 +5,12 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 
+val demoAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
+val demoAdMobBannerId = "ca-app-pub-3940256099942544/9214589741"
+val adMobAppIdProvider = providers.gradleProperty("ADMOB_APP_ID").orElse(demoAdMobAppId)
+val adMobBannerIdProvider = providers.gradleProperty("ADMOB_BANNER_ID").orElse(demoAdMobBannerId)
+val legalBase = "https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo"
+
 android {
     namespace = "studio.gooduse.kitchenprep"
     compileSdk = 37
@@ -17,13 +23,11 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Replace Google demo IDs with production IDs after phone/tablet QA.
-        manifestPlaceholders["ADMOB_APP_ID"] = providers.gradleProperty("ADMOB_APP_ID")
-            .orElse("ca-app-pub-3940256099942544~3347511713").get()
-        buildConfigField("String", "ADMOB_BANNER_ID", "\"" + providers.gradleProperty("ADMOB_BANNER_ID")
-            .orElse("ca-app-pub-3940256099942544/9214589741").get() + "\"")
+        // Debug/device QA may use Google's demo IDs. Release builds are blocked below
+        // unless explicit production IDs are supplied as Gradle properties.
+        manifestPlaceholders["ADMOB_APP_ID"] = adMobAppIdProvider.get()
+        buildConfigField("String", "ADMOB_BANNER_ID", "\"${adMobBannerIdProvider.get()}\"")
 
-        val legalBase = "https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo"
         buildConfigField("String", "PRIVACY_POLICY_URL", "\"" + providers.gradleProperty("PRIVACY_POLICY_URL").orElse("$legalBase/privacy/").get() + "\"")
         buildConfigField("String", "TERMS_URL", "\"" + providers.gradleProperty("TERMS_URL").orElse("$legalBase/terms/").get() + "\"")
         buildConfigField("String", "SUPPORT_URL", "\"" + providers.gradleProperty("SUPPORT_URL").orElse("$legalBase/support/").get() + "\"")
@@ -39,6 +43,35 @@ android {
         compose = true
         buildConfig = true
     }
+}
+
+// A release must never silently ship Google's demo inventory. Debug remains easy to
+// run, while bundleRelease/assembleRelease fail early until production IDs are set.
+val verifyProductionMonetizationConfig = tasks.register("verifyProductionMonetizationConfig") {
+    group = "verification"
+    doLast {
+        val appId = providers.gradleProperty("ADMOB_APP_ID").orNull
+        val bannerId = providers.gradleProperty("ADMOB_BANNER_ID").orNull
+        require(!appId.isNullOrBlank()) {
+            "Release blocked: set ADMOB_APP_ID to the production AdMob app ID."
+        }
+        require(!bannerId.isNullOrBlank()) {
+            "Release blocked: set ADMOB_BANNER_ID to the production banner unit ID."
+        }
+        require(appId != demoAdMobAppId && bannerId != demoAdMobBannerId) {
+            "Release blocked: Google demo AdMob IDs cannot be used in a release build."
+        }
+        require(Regex("^ca-app-pub-[0-9]+~[0-9]+$").matches(appId)) {
+            "Release blocked: ADMOB_APP_ID has an invalid format."
+        }
+        require(Regex("^ca-app-pub-[0-9]+/[0-9]+$").matches(bannerId)) {
+            "Release blocked: ADMOB_BANNER_ID has an invalid format."
+        }
+    }
+}
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(verifyProductionMonetizationConfig)
 }
 
 kapt {
