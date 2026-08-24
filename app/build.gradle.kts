@@ -13,8 +13,8 @@ android {
         applicationId = "studio.gooduse.kitchenprep"
         minSdk = 23
         targetSdk = 36
-        // No prior APK/AAB has been uploaded per owner confirmation. Keep monotonic.
-        versionCode = 3
+        // First Google Play upload; no APK/AAB has previously been uploaded.
+        versionCode = 1
         versionName = "1.0.0"
 
         // Replace Google demo IDs with production IDs after phone/tablet QA.
