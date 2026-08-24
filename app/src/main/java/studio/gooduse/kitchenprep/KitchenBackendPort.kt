@@ -6,7 +6,7 @@ import androidx.compose.runtime.*
 interface KitchenBackendPort {
     val state: State<KitchenUiState>
     fun dispatch(action:String, payload:String?=null)
-    fun attachActivity(activity: Activity, ageTreatment: AgeTreatment) {}
+    fun attachActivity(activity: Activity) {}
     fun acceptSharedText(text: String) {}
     fun onForeground() {}
 }
