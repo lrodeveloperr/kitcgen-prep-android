@@ -13,8 +13,10 @@ android {
         applicationId = "studio.gooduse.kitchenprep"
         minSdk = 23
         targetSdk = 36
+        // Keep versionCode monotonic. Verify 3 is unused in Play before production;
+        // if it has already been uploaded, replace it with the next unused integer.
         versionCode = 3
-        versionName = "1.1.1-combined"
+        versionName = "1.0.0"
 
         // Replace these in local.properties/Gradle properties or CI for production.
         manifestPlaceholders["ADMOB_APP_ID"] = providers.gradleProperty("ADMOB_APP_ID")
