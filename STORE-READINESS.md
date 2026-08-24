@@ -1,152 +1,186 @@
-# Kitchen Prep Board — Global Store Readiness (Android)
+# Kitchen Prep Board — Android 1.0 Global Store Readiness
 
 Review date: 24 August 2026
 
-This checklist is the release gate for the Android app. It is designed as a conservative global baseline for wide Play distribution; it is not a representation that one document can independently certify every local law in every country.
+This is the release gate for the Android app. It uses a conservative global baseline; it does not claim that one checklist can independently certify compliance with every local law.
+
+## Locked owner decisions
+
+- **Platform:** Android first. iOS is not part of the Android 1.0 launch gate.
+- **Public version name:** 1.0 / use `1.0.0` in release metadata unless Play requires a different display convention.
+- **Provider:** Lateef Razaq-Oyetola carrying on business as GoodUse Studios.
+- **Mailing address:** 36 Zorra Street, Toronto (Etobicoke), Ontario M8Z 0G5, Canada.
+- **Support/privacy email:** lrodeveloperr@gmail.com.
+- **Support-message normal retention:** 24 months after closure/last substantive activity, subject to legitimate longer legal/security needs.
+- **Play developer account:** personal.
+- **Audience:** 16+; neutral age screen required before ad initialization.
+- **16–17 advertising:** Google TEEN treatment; no personalized ads; teen protections apply.
+- **Analytics:** none for Android 1.0.
+- **Crash diagnostics:** Google Play Android vitals only; no Firebase Analytics/Crashlytics in Android 1.0.
+- **AdMob production IDs:** deliberately deferred until owner finishes phone/tablet QA.
+- **Distribution:** all otherwise eligible Play-supported countries except jurisdictions excluded under `COUNTRY-AVAILABILITY.md` because the owner does not want extra local representative appointments beyond EEA/UK representation.
+- **EU/EEA + UK representation:** owner intends to purchase one commercial provider/service capable of covering both; representative details remain a release blocker until appointed and published.
 
 ## Current technical status
 
-- **Target API:** PASS — targetSdk 36 meets the Android 16 / API 36 requirement applicable to new apps and updates from 31 August 2026.
+- **Target API:** PASS — targetSdk 36.
 - **Local-first architecture:** PASS — no account or developer-operated cloud database identified in the current Android source.
 - **Android backup:** PASS — disabled.
-- **Google UMP:** IMPLEMENTED — consent info is refreshed and required forms can be shown; final AdMob Privacy & messaging configuration still must be set in the AdMob account.
+- **Google UMP:** IMPLEMENTED in current source; must be delayed until the neutral age category and app-owned first-use privacy notice are resolved in the production port.
 - **Privacy choices:** IMPLEMENTED — Settings can reopen the Google privacy-options form when required.
-- **Google Play Billing:** IMPLEMENTED CLIENT-SIDE — final product configuration, localized price display and Play-track testing are still required.
-- **AdMob production IDs:** BLOCKED — production app and banner IDs have not been supplied; current source can fall back to Google demo IDs.
-- **Public legal URLs:** BLOCKED — current Android Settings contains placeholder/disabled Privacy Policy, Terms and Support rows.
-- **Signed release validation:** BLOCKED — final AAB, signing, install/runtime, Play billing, UMP and banner behavior must be tested in the release toolchain.
+- **Google Play Billing:** IMPLEMENTED CLIENT-SIDE — final product configuration, localized price display and Play-track testing remain required.
+- **AdMob production IDs:** BLOCKED pending owner device QA and live IDs.
+- **Public legal URLs:** BLOCKED pending a public HTTPS legal site.
+- **Native final UI:** BLOCKED — the approved HTML visual/workflow source must still be ported into the native Compose release implementation, including 31-language resources and first-use/legal screens.
+- **Signed release validation:** BLOCKED — final AAB, signing, install/runtime, billing, age treatment, UMP and banner behavior must be tested in the release toolchain.
 
-## First-use flow approved for implementation
+## First-use flow required in native Android
 
-Keep first use short. The recommended sequence is:
+Keep first use short but compliant:
 
-1. **Welcome** — what the app does; local-first; no account.
-2. **Privacy & ads notice** — boards stay on the device; the free version uses Google advertising; Google may process IP/general location, interactions, diagnostics and device identifiers; link to Privacy Policy and Terms. This is an information screen, **not** an advertising-consent substitute.
-3. **Three-step workflow** — Add/Paste → Details/Tasks → Timing → Live.
+0. **Neutral age screen** — month/day/year or another genuinely neutral age input; do not prefill to the minimum age and do not reveal the threshold in a way that encourages falsification. Resolve an on-device age category before UMP or ads initialize.
+   - under 16: do not admit the user to Android 1.0;
+   - 16–17: `TEEN` advertising treatment;
+   - 18+: adult treatment, subject to UMP/regional privacy choices.
+1. **Welcome** — Kitchen Prep Board; local-first; no account; language selection.
+2. **Privacy & ads notice** — kitchen boards remain on device; Google advertising processes device/app-use information; links to Privacy and Terms. This is an information screen, **not** an advertising-consent substitute.
+3. **Three-step workflow** — Add/Paste → Tasks → Timing → Live.
 4. Enter Home.
 
-Then request sensitive/device permissions **only when needed**:
+Then request permissions **only when needed**:
 
-- Show the food-safety acknowledgment before the first board, not as a launch wall.
-- Request Android notification permission when the user first enables/starts a timer that needs background notification.
-- Request exact-alarm special access only when reliable precise timer recovery actually needs it and after explaining why.
-- Let Google UMP display its required consent/privacy form under Google’s regional logic; do not replace it with a custom consent checkbox.
+- show the food-safety acknowledgment before the first board, not as a launch wall;
+- request POST_NOTIFICATIONS when the user first starts/enables timer notifications;
+- request exact-alarm special access only when the timer feature actually needs it and after contextual explanation;
+- let Google UMP show consent/privacy forms under Google’s regional logic; do not replace it with a custom consent checkbox.
 
-## Settings / legal destinations required in the production app
+## Mixed-audience / Families gate for 16+
 
-Under **Privacy & data / Help / Subscription**, provide working destinations for:
+Play provides a 16–17 target-audience band but notes that it may include children in some locales. Therefore the Android 1.0 16+ design must be treated as a mixed-age compliance case where required:
+
+- select the accurate 16–17 and 18+ Play target groups;
+- implement the neutral age screen before advertising/SDK behavior that depends on age;
+- users aged 16–17 must not receive personalized ads;
+- use Google’s current age-treatment signal (`TEEN`) for teen ad requests;
+- verify whether the exact Google Mobile Ads SDK version/configuration used for users treated as children or unknown age meets Play Families requirements;
+- do not transmit disallowed persistent identifiers for users treated as children/unknown age;
+- configure ad-content controls conservatively; **T (Teen) or stricter** is the release ceiling unless a later policy review approves a different setting;
+- keep store listing imagery/wording professional rather than child-directed; and
+- recheck the Families policy immediately before submission.
+
+If the final Play policy interpretation would require child-specific behavior that cannot be cleanly separated at 16–17, stop and reassess the audience declaration rather than misrepresenting it.
+
+## Settings / legal destinations required
+
+The production native app must provide working destinations for:
 
 - Privacy Policy;
 - Terms of Use;
-- Manage privacy choices (Google UMP when available/required);
+- Google privacy choices when required/available;
 - Delete local data;
 - Safety Notice;
 - Support;
-- Ads and subscription information;
+- subscription terms;
 - Manage subscription in Google Play; and
-- app version / third-party notices where appropriate.
+- app version/third-party notices where appropriate.
 
-The Privacy Policy URL used in Play Console must be public, active, non-geofenced, readable without login and not a PDF.
+The Privacy Policy URL supplied to Play must be public, active, HTTPS, non-geofenced, readable without login and not a PDF.
 
 ## Google Play App content declarations
 
 Before production rollout:
 
 - **Contains ads:** YES.
-- **Data safety:** complete from the final signed AAB using `PLAY-DATA-SAFETY-DRAFT.md` only as a draft aid.
-- **Target audience:** release assumption is adults **18+ only**; owner must confirm. Do not select child-directed age groups unless the app/ads/legal design is completely reworked for Families/child rules.
-- **Content rating:** complete IARC questionnaire; an app cannot ship with an unrated/missing rating.
-- **App access:** no login/access instructions expected because the app has no account gate.
-- **Financial features:** not a financial app; Play Billing is only the purchase mechanism.
-- **Health:** app is not positioned as health/medical guidance. Safety copy must not claim food-safety certification.
+- **Data safety:** complete from the final signed AAB using `PLAY-DATA-SAFETY-DRAFT.md` only as an aid.
+- **Target audience:** 16–17 and 18+ only, subject to the mixed-audience/Families review above.
+- **Content rating:** complete IARC questionnaire; do not ship unrated.
+- **App access:** no login/access instructions expected because there is no account gate.
+- **Health:** not positioned as health/medical guidance; food-safety boundary remains explicit.
+- **Financial:** not a financial app; Play Billing is only the purchase mechanism.
 
 ## Advertising release gate
 
-- Configure production AdMob app ID and banner ID; reject demo IDs in production.
+- Owner completes phone/tablet QA before live AdMob IDs are introduced.
+- Replace demo app/banner IDs with production IDs and reject demo IDs in production.
 - Configure AdMob Privacy & messaging for EEA/UK/Switzerland and relevant US-state messages.
-- Keep the anchored banner physically separated from navigation/actions to reduce accidental-click risk.
-- Do not introduce interstitials into active kitchen-prep/timer flow without a new retention/policy review.
-- Ensure the privacy policy discloses Google advertising processing.
-- Recheck Google Mobile Ads SDK data-disclosure documentation at release time.
+- Apply age treatment before every ad request.
+- Teen requests: TEEN treatment, no personalized ads, teen protections.
+- If users are treated as children under applicable Play/Families rules, use only compliant/certified ad serving and identifier controls for those requests.
+- Keep the fixed anchored banner separated from navigation/actions by a non-interactive safe gap.
+- No interstitials in active prep/timer workflow for Android 1.0.
+- Recheck Google Mobile Ads SDK data-disclosure documentation against the exact final SDK version.
+
+## Crash/analytics gate
+
+Android 1.0 intentionally includes **no Firebase Analytics and no Firebase Crashlytics**.
+
+Use Google Play **Android vitals** after testing/launch for Play-provided crash and ANR information. If Firebase Crashlytics, Analytics or another diagnostic SDK is later added, stop release of that change until Privacy Policy, Data safety, SDK inventory and user disclosures are updated.
 
 ## Subscription release gate
 
-Current code product ID: `remove_ads_monthly`; current base plan ID: `monthly`.
+Current source identifiers are `remove_ads_monthly` / `monthly`, but these are not yet owner-confirmed production configuration.
 
 Before release:
 
-- confirm those IDs and the intended billing period;
-- create/activate the product and base plan in Play Console;
-- decide whether there is any trial or introductory offer;
-- show the localized Play ProductDetails price and renewal period in-app; remove the current hard-coded `$1.49/month base price` text;
+- confirm final product ID/base plan/billing period and whether any trial/intro offer exists;
+- create and activate the subscription in Play Console;
+- display the localized Play ProductDetails price and billing period before the purchase action;
 - clearly state that the recurring benefit is ad removal while subscribed;
-- provide a Manage subscription path;
-- verify purchase, acknowledgment, restore/reconciliation, cancellation and expiry using a Play-track build; and
-- strongly consider server-side purchase verification before scale, although the current release is client-side.
+- provide Manage subscription;
+- verify purchase, acknowledgment, reconciliation, cancellation and expiry using a Play-track build; and
+- do not hard-code a storefront price.
 
 ## Permissions release gate
 
 Current manifest declares INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and SCHEDULE_EXACT_ALARM.
 
 - INTERNET: justified by ads, UMP and Play services.
-- POST_NOTIFICATIONS: request at runtime in context, not automatically on first launch.
-- RECEIVE_BOOT_COMPLETED: used for timer recovery.
-- SCHEDULE_EXACT_ALARM: use the Android special-access flow only when exact timing is genuinely required; check `canScheduleExactAlarms()` and degrade gracefully when access is unavailable.
-- Do not add USE_EXACT_ALARM unless the app clearly qualifies for Google Play’s restricted alarm/timer use case and the release team deliberately accepts that policy boundary.
+- POST_NOTIFICATIONS: runtime request in timer context, not first launch.
+- RECEIVE_BOOT_COMPLETED: timer recovery.
+- SCHEDULE_EXACT_ALARM: use special-access flow only where genuinely needed; check availability and degrade gracefully.
+- Do not add USE_EXACT_ALARM unless a separate policy review confirms the app qualifies and the owner deliberately accepts the boundary.
 
-## Global privacy / consumer-law baseline
+## Country availability
 
-The public policy and app behavior should cover the common obligations that recur across GDPR/EEA, UK GDPR, Canada/PIPEDA, California and other US state privacy laws, Brazil LGPD, Japan APPI, Australia Privacy Act/APPs and similar regimes:
+Use `COUNTRY-AVAILABILITY.md` as the country-selection gate.
 
-- clear controller/provider identity and contact;
-- concise notice of what is processed, why, by whom and whether it is shared;
-- separate consent where consent is legally required;
-- easy withdrawal/manage-privacy path;
-- retention and deletion information;
-- international-transfer/third-party disclosures;
-- access/correction/deletion/objection or opt-out rights where applicable;
-- no dark patterns or bundled advertising consent; and
-- truthful store disclosures matching actual SDK behavior.
+The owner wants broad Play distribution but will **not** appoint extra country-specific representatives outside the planned EU/EEA + UK representation relationship. Jurisdictions with a clear or materially uncertain separate representative trigger are excluded from Android 1.0.
 
-The local-first architecture significantly reduces GoodUse Studios’ direct collection. AdMob/UMP is the main privacy-sensitive third-party path and must remain aligned with Google’s current regional requirements.
+Do not advertise a fixed country count (such as 175) until the final Play-supported country list minus exclusions is counted immediately before production.
 
-## Children / age gate
+## Public legal site
 
-Release baseline requires owner confirmation that the product is intended for adults 18+ and will not be marketed to children. This is important for Google Play Families rules, child-directed ad treatment, UK child-design rules and newer child-platform laws such as Brazil’s digital child protections.
+The legal drafts are staged under `legal-drafts/` in this private repository. They cannot serve as the production Play privacy URL.
 
-If children are later intentionally included, stop release and perform a dedicated child-privacy/ads/design review.
+Recommended free solution: create a public repository such as **`kitchen-prep-board-legal`** and publish `/docs` with GitHub Pages, following the existing Grocery Benefits Tracker legal-site pattern. A paid domain is optional, not necessary for Play compliance.
 
-## Public legal site blocker
+Once the public repository exists, publish stable HTTPS pages for Privacy, Terms, Support, Safety, Data Choices and Subscription terms, then insert those exact URLs into the Android BuildConfig/Settings and Play Console.
 
-The legal drafts are staged under `legal-drafts/` in this private repository. A private GitHub URL is **not** an acceptable public Play privacy URL.
+## EU/EEA + UK representative
 
-Owner must provide one of:
+Owner intends to pay for one provider capable of covering both regimes. Current low-cost candidate: **DataRep**, subject to its free consultation confirming the exact combined EU/EEA + UK appointment and package for this app. Do not publish a provider as the representative until the appointment is actually complete and its legal entity/contact details are supplied.
 
-- a public GitHub repository that can be served with GitHub Pages (recommended pattern: `kitchen-prep-board-legal`), or
-- a public GoodUse Studios website/domain.
+## Personal Play account testing
 
-Once supplied, publish stable HTTPS pages for Privacy, Terms, Support, Safety, Data Choices and Subscription terms, then insert those exact URLs into the Android app and Play Console.
+Owner confirmed the Play developer account is personal.
+
+If the personal developer account was created **after 13 November 2023**, Google currently requires a closed test with at least **12 testers opted in continuously for 14 days** before applying for production access. Account creation date / existing production access therefore remains an owner input unless the Play dashboard already shows Production access.
 
 ## Information still required from the owner
 
-1. Confirm legal/provider name for publication: `Lateef Razaq-Oyetola carrying on business as GoodUse Studios` or replacement legal entity.
-2. Public business mailing address to show where legally appropriate.
-3. Confirm support/privacy email (`lrodeveloperr@gmail.com` or replacement).
-4. Public legal-site destination: GitHub Pages repo/domain.
-5. Confirm intended audience is 18+ only.
-6. Confirm production AdMob publisher/app/banner IDs.
-7. Confirm Android subscription product ID, base plan, billing period and whether any trial/intro offer exists.
-8. Confirm whether Android launch will use subscription-only ad removal or another purchase model.
-9. Confirm desired normal support-email retention period (draft policy currently leaves this open).
-10. Confirm whether an EU GDPR Article 27 representative and UK GDPR representative have been appointed or will be obtained if legally required.
-11. Confirm Play developer-account type/status and whether the account is subject to pre-production testing requirements.
-12. Provide final app version/version code and release signing setup when ready for the production AAB.
-13. Confirm no Firebase Analytics, Crashlytics, cloud sync, login, developer server or additional SDK will be added before release.
+1. **Play personal-account creation date** or confirmation that Production access is already granted.
+2. **Public legal-site repository/domain** — recommended: create public `kitchen-prep-board-legal` GitHub repo and enable GitHub Pages.
+3. **EU/EEA + UK representative appointment details** after purchase/appointment.
+4. **Production AdMob app ID and banner ID** after phone/tablet QA.
+5. **Final remove-ads subscription configuration**: product/base-plan IDs, billing period, price strategy and whether any trial/intro offer exists.
+6. **Next unused Play versionCode** if Play already contains uploaded builds. Public versionName is locked to 1.0.0.
 
-## iOS warning
+Everything else listed in the earlier owner-information checklist is resolved.
 
-The current iOS repository explicitly documents that native persistence, background timer recovery, StoreKit, AdMob/consent and share ingress have not yet been implemented. The iOS build therefore cannot be called store-ready from the current repository state. A separate native iOS production-parity pass is required before an App Store launch.
+## iOS boundary
+
+Android launches first. The current iOS repository does not yet contain verified native persistence, background timer recovery, StoreKit, AdMob/consent or share ingress. Do not delay Android 1.0 on iOS parity, and do not describe iOS as store-ready.
 
 ## Release rule
 
-Do not mark the policy drafts effective and do not submit the production AAB until all `[...REQUIRED]` placeholders are resolved, public URLs work, Play declarations match the final signed build, production ad IDs are configured, the subscription is live/tested, permission flows are tested, and the release AAB passes device/runtime QA.
+Do not mark policy drafts effective and do not submit the production AAB until public URLs work, representative details (if required) are published, final country selection is recorded, the neutral age/teen ad-treatment path is tested, production ad IDs are configured, subscription configuration is live/tested, native 31-language resources are present, contextual permission flows are tested, Data safety matches the final signed AAB, and device/runtime QA passes.
