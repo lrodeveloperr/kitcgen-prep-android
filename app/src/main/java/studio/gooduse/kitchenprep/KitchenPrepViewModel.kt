@@ -199,16 +199,17 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
             timing = board?.timingMode?.let { runCatching { TimingMode.valueOf(it) }.getOrNull() },
             targetReadyAt = board?.targetReadyAt,
             paused = board?.status == "PAUSED",
-            adRequestAllowed = money.shouldRequestAds && pref.onboardingComplete,
+            adRequestAllowed = money.shouldRequestAds,
             privacyChoicesRequired = money.privacyOptionsRequired,
             entitlementState = money.entitlement,
             removeAdsFormattedPrice = money.removeAdsFormattedPrice,
             removeAdsBillingPeriod = money.removeAdsBillingPeriod,
+            purchaseInProgress = money.purchaseInProgress,
             settingsReturn = runCatching { BackendState.valueOf(pref.settingsReturnState) }.getOrDefault(BackendState.HOME),
             tasks = tasks,
             prepGaps = gaps,
             recentBoards = recent,
-            userMessage = mutable.value.userMessage,
+            userMessage = money.lastError ?: mutable.value.userMessage,
         )
     }
 
