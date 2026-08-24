@@ -22,10 +22,17 @@ fun KitchenPrepRoot(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(context) { context.findActivity()?.let(resolvedBackend::attachActivity) }
+    // First use is deliberately shown before Google UMP/Billing initialization. Once
+    // the short privacy/ads notice has been seen, the normal UMP regional consent
+    // flow is attached. The custom notice is not treated as consent.
+    LaunchedEffect(context, state.onboardingComplete) {
+        if (state.onboardingComplete) context.findActivity()?.let(resolvedBackend::attachActivity)
+    }
     LaunchedEffect(initialSharedText) { if (!initialSharedText.isNullOrBlank()) resolvedBackend.acceptSharedText(initialSharedText) }
-    DisposableEffect(lifecycleOwner, resolvedBackend) {
-        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) resolvedBackend.onForeground() }
+    DisposableEffect(lifecycleOwner, resolvedBackend, state.onboardingComplete) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && state.onboardingComplete) resolvedBackend.onForeground()
+        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
@@ -34,10 +41,10 @@ fun KitchenPrepRoot(
     GoodUseFrame(
         bottomRail = if (banner.loaded) ({ LoadedBannerRail(banner) }) else null
     ) {
-        if (!state.onboardingComplete) {
-            OnboardingScreen(state.onboardingPage) { resolvedBackend.dispatch("ONBOARD_NEXT") }
-        } else {
-            KitchenScreen(state, resolvedBackend::dispatch)
+        when {
+            !state.onboardingComplete -> StoreReadyFirstUse(state.onboardingPage) { resolvedBackend.dispatch("ONBOARD_NEXT") }
+            state.backendState == BackendState.SETTINGS -> StoreReadySettingsScreen(state, resolvedBackend::dispatch)
+            else -> KitchenScreen(state, resolvedBackend::dispatch)
         }
     }
 }
@@ -51,7 +58,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=412,heightDp=915,showBackground=true)
 @Composable private fun CompactPreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")
@@ -61,7 +68,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=1024,heightDp=768,showBackground=true)
 @Composable private fun WidePreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")
