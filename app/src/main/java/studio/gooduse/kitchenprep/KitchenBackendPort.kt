@@ -26,6 +26,7 @@ class PreviewKitchenBackend(initialSharedText:String?=null): KitchenBackendPort 
     override fun dispatch(action:String,payload:String?) {
         val s=mutable.value
         mutable.value = when(action) {
+            "AGE_RESOLVED" -> s.copy(ageTreatment=runCatching { AgeTreatment.valueOf(payload.orEmpty()) }.getOrDefault(AgeTreatment.UNKNOWN))
             "ONBOARD_NEXT" -> if (s.onboardingPage < 1) s.copy(onboardingPage=s.onboardingPage+1)
                                else s.copy(onboardingComplete=true)
             "NEW_BOARD","CREATE_PASTE","CREATE_REFERENCE" -> s.copy(backendState=BackendState.CREATE_BOARD, sourceType=when(action){"CREATE_PASTE"->"PASTE_TEXT";"CREATE_REFERENCE"->"REFERENCE_URL";else->"MANUAL"})
