@@ -30,7 +30,6 @@ class MonetizationController(
     private val consentInformation = UserMessagingPlatform.getConsentInformation(appContext)
     private var activityRef: WeakReference<Activity>? = null
     private var started = false
-    @Volatile private var ageTreatment: String = "UNKNOWN"
 
     private val _state = MutableStateFlow(MonetizationState())
     val state: StateFlow<MonetizationState> = _state
@@ -44,7 +43,6 @@ class MonetizationController(
     init {
         scope.launch {
             preferences.state.collect { p ->
-                ageTreatment = p.ageTreatmentState
                 if (_state.value.entitlement != p.entitlementState) {
                     _state.value = _state.value.copy(entitlement = p.entitlementState)
                 }
@@ -53,7 +51,6 @@ class MonetizationController(
     }
 
     fun attach(activity: Activity) {
-        if (ageTreatment !in setOf("TEEN", "ADULT")) return
         activityRef = WeakReference(activity)
         if (!started) {
             started = true
@@ -63,7 +60,6 @@ class MonetizationController(
     }
 
     fun reconcile() {
-        if (ageTreatment !in setOf("TEEN", "ADULT")) return
         if (billingClient.isReady) queryPurchases() else connectBilling()
     }
 
@@ -178,12 +174,9 @@ class MonetizationController(
     }
 
     private fun refreshConsent(activity: Activity) {
-        // For 16–17 users, use UMP's under-age-of-consent tag conservatively. UMP
-        // does not forward this to the Mobile Ads SDK; AdBanner.kt independently sets
-        // Google's TEEN age-restricted treatment on every ad request path.
-        val params = ConsentRequestParameters.Builder()
-            .setTagForUnderAgeOfConsent(ageTreatment == "TEEN")
-            .build()
+        // Android 1.0 is 18+ only, so no child/teen tag is sent. UMP applies its
+        // normal adult regional consent/privacy-choice logic.
+        val params = ConsentRequestParameters.Builder().build()
         consentInformation.requestConsentInfoUpdate(
             activity,
             params,
