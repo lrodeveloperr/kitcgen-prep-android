@@ -48,14 +48,7 @@ jobs:
           cp "$RUNNER_TEMP/reviewed/integration/pubspec.yaml" flutter_app/pubspec.yaml
           cp "$RUNNER_TEMP/reviewed/integration/analysis_options.yaml" flutter_app/analysis_options.yaml
           cp "$RUNNER_TEMP/reviewed/integration/very_good.yaml" flutter_app/very_good.yaml
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('flutter_app/pubspec.yaml')
-          s=p.read_text()
-          if 'flutter:\n  generate: true\n' not in s:
-              s=s.replace('flutter:\n  uses-material-design: true\n','flutter:\n  generate: true\n  uses-material-design: true\n')
-          p.write_text(s)
-          PY
+          rm -f flutter_app/l10n.yaml
 
       - name: Resolve packages
         working-directory: flutter_app
