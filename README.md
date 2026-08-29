@@ -4,6 +4,12 @@
 
 Backend contract SHA-256: `431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b`.
 
+## Locked next implementation
+
+The platform-neutral product workflow and interaction logic for the next implementation are locked in [`docs/LOCKED_PRODUCT_WORKFLOW_AND_LOGIC.md`](docs/LOCKED_PRODUCT_WORKFLOW_AND_LOGIC.md).
+
+This is a logic-only checkpoint. It does not select a Flutter repository or visual skin, and it does not claim that the existing Compose UI already implements the new workflow. Future UI and cross-platform work must conform to this locked contract before store release.
+
 ## v1.1.1 fixes
 
 - `BootCompletedReceiver` and `ClockChangeReceiver` are exported for system timer-recovery broadcasts; the internal alarm receiver remains non-exported.
