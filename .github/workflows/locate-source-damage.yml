@@ -1,0 +1,38 @@
+name: Locate Kitchen Source Damage
+
+on:
+  push:
+    branches: [vgc-release-candidate]
+    paths:
+      - .source/part03.expected.sha256
+      - .github/workflows/locate-source-damage.yml
+
+permissions:
+  contents: read
+
+jobs:
+  locate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compare 512-byte chunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          p=Path('.source/integration.part03').read_bytes()
+          expected={int(i):h for i,h in (line.split() for line in Path('.source/part03.expected.sha256').read_text().splitlines())}
+          print('length',len(p))
+          mismatches=[]
+          for i in range(0,len(p),512):
+              idx=i//512
+              got=hashlib.sha256(p[i:i+512]).hexdigest()
+              want=expected.get(idx)
+              if got!=want:
+                  mismatches.append((idx,i,len(p[i:i+512]),got,want))
+          print('MISMATCHES',mismatches)
+          if not mismatches:
+              print('PART03_OK')
+          PY
