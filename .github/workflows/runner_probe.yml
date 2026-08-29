@@ -1,0 +1,13 @@
+name: Runner probe
+
+on:
+  push:
+    branches: [vgc-cross-platform]
+    paths: [.github/workflows/runner_probe.yml]
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Runner is available
+        run: echo "runner-ok"
