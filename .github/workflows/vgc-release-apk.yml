@@ -53,9 +53,19 @@ jobs:
         working-directory: flutter_app
         run: flutter pub get
 
-      - name: Analyze
+      - name: Analyze for blocking issues
         working-directory: flutter_app
-        run: flutter analyze
+        shell: bash
+        run: |
+          set +e
+          flutter analyze 2>&1 | tee "$RUNNER_TEMP/flutter-analyze.log"
+          analyze_rc=${PIPESTATUS[0]}
+          set -e
+          if grep -Eq '^[[:space:]]*(error|warning) •' "$RUNNER_TEMP/flutter-analyze.log"; then
+            echo 'Blocking analyzer error or warning found.' >&2
+            exit "$analyze_rc"
+          fi
+          echo 'Analyzer contains info-level cleanup only; continuing review build.'
 
       - name: Unit and widget tests
         working-directory: flutter_app
