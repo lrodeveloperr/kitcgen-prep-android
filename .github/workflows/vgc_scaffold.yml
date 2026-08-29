@@ -1,0 +1,46 @@
+name: Scaffold Very Good CLI app
+
+on:
+  push:
+    branches:
+      - vgc-cross-platform
+    paths:
+      - .github/workflows/vgc_scaffold.yml
+
+permissions:
+  contents: write
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: vgc-cross-platform
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+      - name: Install Very Good CLI
+        run: dart pub global activate very_good_cli 1.4.0
+      - name: Generate Android and iOS scaffold
+        run: |
+          rm -rf .vgc_tmp flutter_app
+          mkdir .vgc_tmp
+          cd .vgc_tmp
+          dart pub global run very_good_cli:very_good create flutter_app kitchen_prep_board \
+            --desc "Kitchen Prep Board" \
+            --org "studio.gooduse" \
+            --application-id "studio.gooduse.kitchenprep" \
+            --platforms android,ios
+          cd ..
+          mv .vgc_tmp/kitchen_prep_board flutter_app
+          rm -rf .vgc_tmp
+      - name: Commit generated scaffold
+        run: |
+          git config user.name "kitchen-build-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add flutter_app
+          git commit -m "build: generate VGC 1.4.0 Flutter scaffold [skip scaffold]"
+          git push origin HEAD:vgc-cross-platform
