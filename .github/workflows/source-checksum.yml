@@ -1,0 +1,21 @@
+name: Verify Kitchen Source Parts
+
+on:
+  push:
+    branches: [vgc-release-candidate]
+    paths: [.github/workflows/source-checksum.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check source part hashes and lengths
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum .source/integration.part00 .source/integration.part01 .source/integration.part02 .source/integration.part03
+          wc -c .source/integration.part00 .source/integration.part01 .source/integration.part02 .source/integration.part03
