@@ -6,8 +6,7 @@ on:
       - vgc-release-candidate
     paths:
       - .github/workflows/vgc-release-apk.yml
-      - .source/**
-      - flutter_app/android/**
+      - flutter_app/**
 
 permissions:
   contents: read
@@ -30,25 +29,6 @@ jobs:
           flutter-version: '3.47.1'
           channel: stable
           cache: true
-
-      - name: Restore reviewed source
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat .source/integration.part00 .source/integration.part01 .source/integration.part02 .source/integration.part03 > "$RUNNER_TEMP/integration.b64"
-          echo '18a85cefef0b769066b8c9d89a06e9015f0441a278b9af649db4c3106566ad52  '"$RUNNER_TEMP/integration.b64" | sha256sum -c -
-          base64 --decode "$RUNNER_TEMP/integration.b64" > "$RUNNER_TEMP/integration.tgz"
-          rm -rf "$RUNNER_TEMP/reviewed"
-          mkdir -p "$RUNNER_TEMP/reviewed"
-          tar -xzf "$RUNNER_TEMP/integration.tgz" -C "$RUNNER_TEMP/reviewed"
-          test -f "$RUNNER_TEMP/reviewed/integration/lib/main.dart"
-          rm -rf flutter_app/lib flutter_app/test
-          cp -a "$RUNNER_TEMP/reviewed/integration/lib" flutter_app/lib
-          cp -a "$RUNNER_TEMP/reviewed/integration/test" flutter_app/test
-          cp "$RUNNER_TEMP/reviewed/integration/pubspec.yaml" flutter_app/pubspec.yaml
-          cp "$RUNNER_TEMP/reviewed/integration/analysis_options.yaml" flutter_app/analysis_options.yaml
-          cp "$RUNNER_TEMP/reviewed/integration/very_good.yaml" flutter_app/very_good.yaml
-          rm -f flutter_app/l10n.yaml
 
       - name: Resolve packages
         working-directory: flutter_app

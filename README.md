@@ -1,41 +1,34 @@
-# Kitchen Prep Board — Android v1.1.1
+# Kitchen Prep Board — cross-platform v2.0.0
 
-`main` is the current combined Jetpack Compose UI + executable local Android backend source.
+`main` is the canonical source for the Very Good CLI/Flutter implementation of Kitchen Prep Board on Android and iOS.
 
-Backend contract SHA-256: `431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b`.
+The production application lives in [`flutter_app`](flutter_app). It contains:
 
-## Locked next implementation
+- the shared local-first workflow, scheduling, timer and catalogue logic;
+- the responsive phone/tablet UI used by Android and iOS;
+- Android and iOS native runner projects;
+- offline atomic-file persistence and timer notification recovery;
+- UMP consent, non-personalized banner ads and remove-ads purchase wiring;
+- ten launch languages, with Simplified and Traditional Chinese treated as separate locales.
 
-The platform-neutral product workflow and interaction logic for the next implementation are locked in [`docs/LOCKED_PRODUCT_WORKFLOW_AND_LOGIC.md`](docs/LOCKED_PRODUCT_WORKFLOW_AND_LOGIC.md).
-
-This is a logic-only checkpoint. It does not select a Flutter repository or visual skin, and it does not claim that the existing Compose UI already implements the new workflow. Future UI and cross-platform work must conform to this locked contract before store release.
-
-## v1.1.1 fixes
-
-- `BootCompletedReceiver` and `ClockChangeReceiver` are exported for system timer-recovery broadcasts; the internal alarm receiver remains non-exported.
-- Starting a replacement board archives every open `DRAFT`, `READY`, `ACTIVE`, or `PAUSED` board and cancels live timers first.
-- Duplicate-board reuse selects the latest finished board and remaps dependencies, prep gaps, and task resource requirements.
-- Full local-data deletion includes shifts and resources.
-- Resource scheduling uses bounded forward conflict scanning rather than the old 512-attempt behavior; a 600-task capacity-1 regression test is included.
-- Task-start outcomes are explicit and surfaced to the UI.
-- Undo returns terminal tasks through `BLOCKED` before dependency recomputation.
-- Latest finished-board lookup is a DAO query.
-- Duplicate failure stays on Home with a clear user message.
+The older Jetpack Compose v1.1.1 implementation remains at the repository root for history. New product work and release builds must use `flutter_app`.
 
 ## Build baseline
 
-- Android Gradle Plugin 9.3.1
-- Gradle 9.5.0 compatible installation required
-- JDK 17
-- compileSdk 37 / targetSdk 36 / minSdk 23
-
-Typical local commands:
+- Flutter 3.47.1 or newer compatible stable toolchain
+- Dart 3.13 or newer compatible toolchain
+- Android target SDK 36
+- iOS 16+
 
 ```bash
-gradle :app:testDebugUnitTest
-gradle :app:assembleDebug
+cd flutter_app
+flutter pub get
+flutter analyze
+flutter test
+flutter build apk --debug --flavor production -t lib/main.dart
+flutter build ios --release --no-codesign --flavor production -t lib/main.dart
 ```
 
-The project intentionally does not include a fabricated Gradle wrapper binary. Production AdMob IDs, live Play subscription configuration, and final policy/support URLs must be supplied before release.
+Review builds use Google test ad identifiers. Production ad unit IDs and the platform remove-ads product identifier must be supplied with Dart defines during signed release builds.
 
-See `VERIFICATION.json` for the validation boundary. A full Android SDK/Gradle build was unavailable in the packaging environment; focused Kotlin semantic/regression validation passed.
+See [`VERIFICATION.json`](VERIFICATION.json) for the current validation boundary.
