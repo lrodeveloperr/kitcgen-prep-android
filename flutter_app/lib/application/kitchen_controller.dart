@@ -12,6 +12,10 @@ import 'package:kitchen_prep_board/services/monetization_service.dart';
 import 'package:kitchen_prep_board/services/timer_notifications.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+class KitchenSaveException implements Exception {
+  const KitchenSaveException();
+}
+
 class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
   KitchenController({
     KitchenStore? store,
@@ -29,6 +33,7 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
   List<String> expiredTaskIds = const <String>[];
   Timer? _ticker;
   Future<void>? _saveInFlight;
+  String _persistedSnapshotSource = KitchenSnapshot.empty().encode();
   Locale _systemLocale = const Locale('en');
   String? _lastClosedSnapshot;
   int? _lastClosedAtEpochMs;
@@ -61,6 +66,7 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     engine = KitchenWorkflowEngine(snapshot: await store.load());
     expiredTaskIds = engine.reconcile(DateTime.now().millisecondsSinceEpoch);
+    _persistedSnapshotSource = snapshot.encode();
     await notifications.initialize(strings);
     await WakelockPlus.toggle(enable: snapshot.keepScreenAwake);
     unawaited(monetization.initialize());
@@ -80,13 +86,33 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _save() async {
     final previous = _saveInFlight;
     if (previous != null) await previous;
-    final operation = store.save(snapshot);
+
+    // Persist an immutable copy. The live engine may be mutated by another
+    // user action while this asynchronous write is in progress.
+    final source = snapshot.encode();
+    final candidate = KitchenSnapshot.decode(source);
+    final operation = Future<void>.sync(() => store.save(candidate));
     _saveInFlight = operation;
     try {
       await operation;
+      _persistedSnapshotSource = source;
+    } on Object catch (error, stackTrace) {
+      debugPrint('Kitchen snapshot save failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      engine = KitchenWorkflowEngine(
+        snapshot: KitchenSnapshot.decode(_persistedSnapshotSource),
+      );
+      expiredTaskIds = engine.reconcile(DateTime.now().millisecondsSinceEpoch);
+      notifyListeners();
+      throw const KitchenSaveException();
     } finally {
       if (identical(_saveInFlight, operation)) _saveInFlight = null;
     }
+  }
+
+  Future<void> _waitForPendingSave() async {
+    final pending = _saveInFlight;
+    if (pending != null) await pending;
   }
 
   Future<KitchenBoard> createDraft({
@@ -351,15 +377,18 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> addTime(
+    KitchenBoard board,
     KitchenTask task,
     Duration extension,
     KitchenStrings strings,
   ) async {
-    timers.extendTask(task, DateTime.now().millisecondsSinceEpoch, extension);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    timers.extendTask(task, now, extension);
     await notifications.cancel(task);
     if (task.deadlineEpochMs != null && snapshot.timerAlertsEnabled) {
       await notifications.schedule(task, strings);
     }
+    board.updatedAtEpochMs = now;
     await _save();
     notifyListeners();
   }
@@ -399,6 +428,7 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<bool> undoLastFinish(KitchenStrings strings) async {
+    await _waitForPendingSave();
     final source = _lastClosedSnapshot;
     final closedAt = _lastClosedAtEpochMs;
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -409,8 +439,6 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     engine = KitchenWorkflowEngine(snapshot: KitchenSnapshot.decode(source));
-    _lastClosedSnapshot = null;
-    _lastClosedAtEpochMs = null;
     expiredTaskIds = engine.reconcile(now);
     await notifications.cancelAll();
     final board = activeBoard;
@@ -424,6 +452,8 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     await _save();
+    _lastClosedSnapshot = null;
+    _lastClosedAtEpochMs = null;
     notifyListeners();
     return true;
   }
@@ -589,8 +619,16 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> clearLocalData() async {
     await notifications.cancelAll();
-    await store.clear();
+    try {
+      await _waitForPendingSave();
+      await store.clear();
+    } on Object catch (error, stackTrace) {
+      debugPrint('Kitchen snapshot clear failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      throw const KitchenSaveException();
+    }
     engine = KitchenWorkflowEngine();
+    _persistedSnapshotSource = snapshot.encode();
     expiredTaskIds = const <String>[];
     await WakelockPlus.disable();
     notifyListeners();
@@ -601,7 +639,7 @@ class KitchenController extends ChangeNotifier with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       expiredTaskIds = engine.reconcile(DateTime.now().millisecondsSinceEpoch);
       unawaited(notifications.refreshTimeZone());
-      unawaited(_save());
+      unawaited(_save().onError<KitchenSaveException>((_, __) {}));
       notifyListeners();
     }
   }

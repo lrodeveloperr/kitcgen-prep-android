@@ -10,7 +10,7 @@ class MonetizationService extends ChangeNotifier {
   static const _configuredBannerId = String.fromEnvironment('BANNER_AD_UNIT_ID');
   static const _useTestAds = bool.fromEnvironment('USE_TEST_ADS', defaultValue: true);
 
-  final InAppPurchase _iap = InAppPurchase.instance;
+  InAppPurchase? _iap;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   ProductDetails? product;
   bool removeAds = false;
@@ -18,6 +18,8 @@ class MonetizationService extends ChangeNotifier {
   bool privacyOptionsRequired = false;
   bool storeAvailable = false;
   bool initialized = false;
+
+  InAppPurchase get _store => _iap ??= InAppPurchase.instance;
 
   String get productId => _configuredProductId;
 
@@ -31,19 +33,19 @@ class MonetizationService extends ChangeNotifier {
 
   Future<void> initialize() async {
     if (initialized) return;
-    _purchaseSubscription = _iap.purchaseStream.listen(
+    _purchaseSubscription = _store.purchaseStream.listen(
       _handlePurchases,
       onError: (_) {},
     );
-    storeAvailable = await _iap.isAvailable();
+    storeAvailable = await _store.isAvailable();
     if (storeAvailable && productId.isNotEmpty) {
-      final response = await _iap.queryProductDetails({productId});
+      final response = await _store.queryProductDetails({productId});
       if (response.productDetails.isNotEmpty) {
         product = response.productDetails.first;
       }
       // Reconcile from the store every launch. Entitlement is deliberately not
       // trusted from local storage, so an expired subscription cannot suppress ads.
-      await _iap.restorePurchases();
+      await _store.restorePurchases();
     }
     await refreshConsent();
     initialized = true;
@@ -93,11 +95,13 @@ class MonetizationService extends ChangeNotifier {
   Future<void> buyRemoveAds() async {
     final details = product;
     if (!storeAvailable || details == null) return;
-    await _iap.buyNonConsumable(purchaseParam: PurchaseParam(productDetails: details));
+    await _store.buyNonConsumable(
+      purchaseParam: PurchaseParam(productDetails: details),
+    );
   }
 
   Future<void> restorePurchases() async {
-    if (storeAvailable) await _iap.restorePurchases();
+    if (storeAvailable) await _store.restorePurchases();
   }
 
   Future<void> _handlePurchases(List<PurchaseDetails> purchases) async {
@@ -110,7 +114,7 @@ class MonetizationService extends ChangeNotifier {
             purchase.status == PurchaseStatus.restored;
       }
       if (purchase.pendingCompletePurchase) {
-        await _iap.completePurchase(purchase);
+        await _store.completePurchase(purchase);
       }
     }
     if (sawConfiguredProduct && entitlement != removeAds) {

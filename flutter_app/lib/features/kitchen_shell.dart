@@ -12,6 +12,39 @@ import 'package:kitchen_prep_board/services/monetization_service.dart';
 
 KitchenStrings _s(BuildContext context) => KitchenStrings(Localizations.localeOf(context));
 
+Future<bool> _runKitchenAction(
+  BuildContext context,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+    return true;
+  } on KitchenSaveException {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_s(context).t('saveFailed'))),
+      );
+    }
+    return false;
+  }
+}
+
+Future<T?> _runKitchenValue<T>(
+  BuildContext context,
+  Future<T> Function() action,
+) async {
+  try {
+    return await action();
+  } on KitchenSaveException {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_s(context).t('saveFailed'))),
+      );
+    }
+    return null;
+  }
+}
+
 class KitchenShell extends StatefulWidget {
   const KitchenShell({required this.controller, super.key});
   final KitchenController controller;
@@ -386,7 +419,10 @@ class BoardsPage extends StatelessWidget {
                 trailing: PopupMenuButton<String>(
                   onSelected: (value) async {
                     if (value == 'duplicate') {
-                      await controller.duplicateBoard(board);
+                      await _runKitchenValue(
+                        context,
+                        () => controller.duplicateBoard(board),
+                      );
                     } else if (value == 'delete') {
                       final ok = await _confirm(
                         context,
@@ -395,7 +431,10 @@ class BoardsPage extends StatelessWidget {
                         confirmLabel: s.t('delete'),
                       );
                       if (ok && !board.isActive) {
-                        await controller.deleteBoard(board);
+                        await _runKitchenAction(
+                          context,
+                          () => controller.deleteBoard(board),
+                        );
                       }
                     }
                   },
@@ -425,8 +464,11 @@ class BoardsPage extends StatelessWidget {
                   title: Text(template.title),
                   subtitle: Text('${template.board.tasks.length} ${s.t('tasks')}'),
                   onTap: () async {
-                    final board = await controller.createFromTemplate(template);
-                    if (!context.mounted) return;
+                    final board = await _runKitchenValue(
+                      context,
+                      () => controller.createFromTemplate(template),
+                    );
+                    if (board == null || !context.mounted) return;
                     await Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => BoardReviewPage(
@@ -446,10 +488,16 @@ class BoardsPage extends StatelessWidget {
                           initialValue: template.title,
                         );
                         if (title != null && title.trim().isNotEmpty) {
-                          await controller.renameTemplate(template, title);
+                          await _runKitchenAction(
+                            context,
+                            () => controller.renameTemplate(template, title),
+                          );
                         }
                       } else if (value == 'duplicate') {
-                        await controller.duplicateTemplate(template);
+                        await _runKitchenValue(
+                          context,
+                          () => controller.duplicateTemplate(template),
+                        );
                       } else if (value == 'delete') {
                         final ok = await _confirm(
                           context,
@@ -457,7 +505,12 @@ class BoardsPage extends StatelessWidget {
                           s,
                           confirmLabel: s.t('delete'),
                         );
-                        if (ok) await controller.deleteTemplate(template);
+                        if (ok) {
+                          await _runKitchenAction(
+                            context,
+                            () => controller.deleteTemplate(template),
+                          );
+                        }
                       }
                     },
                     itemBuilder: (_) => [
@@ -740,8 +793,11 @@ class _NewBoardPageState extends State<NewBoardPage> {
                       '${template.board.tasks.length} ${s.t('tasks')}',
                     ),
                     onTap: () async {
-                      final board = await widget.controller.createFromTemplate(template);
-                      if (!context.mounted) return;
+                      final board = await _runKitchenValue(
+                        context,
+                        () => widget.controller.createFromTemplate(template),
+                      );
+                      if (board == null || !context.mounted) return;
                       await Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => BoardReviewPage(
@@ -774,12 +830,16 @@ class _NewBoardPageState extends State<NewBoardPage> {
     final title = '${s.t('boards')} '
         '${now.hour.toString().padLeft(2, '0')}:'
         '${now.minute.toString().padLeft(2, '0')}';
-    final board = await widget.controller.createDraft(
-      title: title,
-      mode: mode,
-      taskNames: names,
-      stationItemNames: mode == BoardMode.station ? names : const <String>[],
+    final board = await _runKitchenValue(
+      context,
+      () => widget.controller.createDraft(
+        title: title,
+        mode: mode,
+        taskNames: names,
+        stationItemNames: mode == BoardMode.station ? names : const <String>[],
+      ),
     );
+    if (board == null) return;
     for (final item in chosen) {
       for (final task in board.tasks) {
         if (task.sourceItemId == null && task.name == item.display(locale)) {
@@ -794,7 +854,11 @@ class _NewBoardPageState extends State<NewBoardPage> {
         }
       }
     }
-    await widget.controller.recordCatalogueUse(chosen.map((item) => item.id));
+    final usageSaved = await _runKitchenAction(
+      context,
+      () => widget.controller.recordCatalogueUse(chosen.map((item) => item.id)),
+    );
+    if (!usageSaved) return;
     if (!context.mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -835,12 +899,15 @@ class _NewBoardPageState extends State<NewBoardPage> {
     );
     controller.dispose();
     if (text == null || text.trim().isEmpty || !context.mounted) return;
-    final board = await widget.controller.createDraftFromText(
-      title: s.t('boards'),
-      mode: mode,
-      text: text,
+    final board = await _runKitchenValue(
+      context,
+      () => widget.controller.createDraftFromText(
+        title: s.t('boards'),
+        mode: mode,
+        text: text,
+      ),
     );
-    if (!context.mounted) return;
+    if (board == null || !context.mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => BoardReviewPage(controller: widget.controller, board: board),
@@ -873,14 +940,17 @@ class _NewBoardPageState extends State<NewBoardPage> {
     );
     controller.dispose();
     if (url == null || url.isEmpty || !context.mounted) return;
-    final board = await widget.controller.createDraft(
-      title: s.t('boards'),
-      mode: mode,
-      taskNames: const <String>[],
-      sourceType: 'referenceUrl',
-      referenceUrl: url,
+    final board = await _runKitchenValue(
+      context,
+      () => widget.controller.createDraft(
+        title: s.t('boards'),
+        mode: mode,
+        taskNames: const <String>[],
+        sourceType: 'referenceUrl',
+        referenceUrl: url,
+      ),
     );
-    if (!context.mounted) return;
+    if (board == null || !context.mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => BoardReviewPage(controller: widget.controller, board: board),
@@ -934,8 +1004,10 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                       PopupMenuButton<String>(
                         tooltip: s.t('unit'),
                         icon: const Icon(Icons.straighten_outlined),
-                        onSelected: (value) =>
-                            widget.controller.applyUnitToStationItems(board, value),
+                        onSelected: (value) => _runKitchenAction(
+                          context,
+                          () => widget.controller.applyUnitToStationItems(board, value),
+                        ),
                         itemBuilder: (_) => [
                           for (final unit in const [
                             'g', 'kg', 'oz', 'lb', 'ml', 'L', 'cup', 'tbsp', 'tsp', 'pcs'
@@ -961,8 +1033,10 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: board.tasks.length,
-                  onReorder: (oldIndex, newIndex) =>
-                      widget.controller.reorderTasks(board, oldIndex, newIndex),
+                  onReorder: (oldIndex, newIndex) => _runKitchenAction(
+                    context,
+                    () => widget.controller.reorderTasks(board, oldIndex, newIndex),
+                  ),
                   itemBuilder: (context, index) {
                     final task = board.tasks[index];
                     return Card(
@@ -976,8 +1050,14 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                               key: ValueKey('name_${task.id}'),
                               initialValue: task.name,
                               decoration: InputDecoration(labelText: s.t('taskName')),
-                              onChanged: (value) =>
-                                  widget.controller.updateTask(board, task, name: value),
+                              onChanged: (value) => _runKitchenAction(
+                                context,
+                                () => widget.controller.updateTask(
+                                  board,
+                                  task,
+                                  name: value,
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 8),
                             Row(
@@ -998,27 +1078,34 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                                           child: Text('$minutes ${s.t('minutes')}'),
                                         ),
                                     ],
-                                    onChanged: (value) => widget.controller.updateTask(
-                                      board,
-                                      task,
-                                      durationSeconds: value,
-                                      clearDuration: value == 0,
-                                      kind: value == 0
-                                          ? TaskKind.step
-                                          : TaskKind.singleTimer,
+                                    onChanged: (value) => _runKitchenAction(
+                                      context,
+                                      () => widget.controller.updateTask(
+                                        board,
+                                        task,
+                                        durationSeconds: value,
+                                        clearDuration: value == 0,
+                                        kind: value == 0
+                                            ? TaskKind.step
+                                            : TaskKind.singleTimer,
+                                      ),
                                     ),
                                   ),
                                 ),
                                 IconButton(
                                   tooltip: s.t('duplicate'),
-                                  onPressed: () =>
-                                      widget.controller.duplicateTaskInDraft(board, task),
+                                  onPressed: () => _runKitchenAction(
+                                    context,
+                                    () => widget.controller.duplicateTaskInDraft(board, task),
+                                  ),
                                   icon: const Icon(Icons.copy_outlined),
                                 ),
                                 IconButton(
                                   tooltip: s.t('delete'),
-                                  onPressed: () =>
-                                      widget.controller.removeTaskFromDraft(board, task),
+                                  onPressed: () => _runKitchenAction(
+                                    context,
+                                    () => widget.controller.removeTaskFromDraft(board, task),
+                                  ),
                                   icon: const Icon(Icons.delete_outline),
                                 ),
                               ],
@@ -1053,10 +1140,13 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                                   ],
                                   onChanged: (value) {
                                     if (value != null) {
-                                      widget.controller.updateTask(
-                                        board,
-                                        task,
-                                        priority: value,
+                                      _runKitchenAction(
+                                        context,
+                                        () => widget.controller.updateTask(
+                                          board,
+                                          task,
+                                          priority: value,
+                                        ),
                                       );
                                     }
                                   },
@@ -1083,11 +1173,15 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                                   ],
                                   onChanged: (value) async {
                                     try {
-                                      await widget.controller.updateTask(
-                                        board,
-                                        task,
-                                        dependencyIds:
-                                            value == null || value.isEmpty ? [] : [value],
+                                      await _runKitchenAction(
+                                        context,
+                                        () => widget.controller.updateTask(
+                                          board,
+                                          task,
+                                          dependencyIds: value == null || value.isEmpty
+                                              ? []
+                                              : [value],
+                                        ),
                                       );
                                     } on DependencyCycleException {
                                       if (!context.mounted) return;
@@ -1116,17 +1210,19 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                                         child: Text(resource.name),
                                       ),
                                   ],
-                                  onChanged: (value) => widget.controller.updateTask(
-                                    board,
-                                    task,
-                                    resourceRequirements:
-                                        value == null || value.isEmpty
-                                            ? []
-                                            : [
-                                                TaskResourceRequirement(
-                                                  resourceId: value,
-                                                ),
-                                              ],
+                                  onChanged: (value) => _runKitchenAction(
+                                    context,
+                                    () => widget.controller.updateTask(
+                                      board,
+                                      task,
+                                      resourceRequirements: value == null || value.isEmpty
+                                          ? []
+                                          : [
+                                              TaskResourceRequirement(
+                                                resourceId: value,
+                                              ),
+                                            ],
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1144,12 +1240,12 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                       child: TextField(
                         controller: addController,
                         decoration: InputDecoration(labelText: s.t('taskName')),
-                        onSubmitted: (_) => _add(board),
+                        onSubmitted: (_) => _add(context, board),
                       ),
                     ),
                     const SizedBox(width: 8),
                     IconButton.filledTonal(
-                      onPressed: () => _add(board),
+                      onPressed: () => _add(context, board),
                       icon: const Icon(Icons.add),
                     ),
                   ],
@@ -1164,17 +1260,26 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                         child: ListTile(
                           leading: Switch(
                             value: resource.available,
-                            onChanged: (value) => widget.controller.updateResource(
-                              board,
-                              resource,
-                              available: value,
+                            onChanged: (value) => _runKitchenAction(
+                              context,
+                              () => widget.controller.updateResource(
+                                board,
+                                resource,
+                                available: value,
+                              ),
                             ),
                           ),
                           title: Text(resource.name),
                           subtitle: Text('${s.t('capacity')}: ${resource.capacity}'),
                           trailing: PopupMenuButton<int>(
-                            onSelected: (capacity) => widget.controller
-                                .updateResource(board, resource, capacity: capacity),
+                            onSelected: (capacity) => _runKitchenAction(
+                              context,
+                              () => widget.controller.updateResource(
+                                board,
+                                resource,
+                                capacity: capacity,
+                              ),
+                            ),
                             itemBuilder: (_) => [
                               for (final capacity in const [1, 2, 3, 4, 6, 8])
                                 PopupMenuItem(
@@ -1212,9 +1317,12 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                   onSelectionChanged: (value) async {
                     final mode = value.first;
                     if (mode == TimingMode.startNow) {
-                      await widget.controller.setTiming(
-                        board,
-                        mode: TimingMode.startNow,
+                      await _runKitchenAction(
+                        context,
+                        () => widget.controller.setTiming(
+                          board,
+                          mode: TimingMode.startNow,
+                        ),
                       );
                     } else {
                       await _pickReadyAt(context, board, s);
@@ -1262,7 +1370,10 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                 OutlinedButton.icon(
                   onPressed: board.tasks.isEmpty
                       ? null
-                      : () => widget.controller.saveTemplate(board),
+                      : () => _runKitchenValue(
+                            context,
+                            () => widget.controller.saveTemplate(board),
+                          ),
                   icon: const Icon(Icons.bookmark_add_outlined),
                   label: Text(s.t('saveTemplate')),
                 ),
@@ -1272,7 +1383,11 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
                       ? null
                       : () async {
                           try {
-                            await widget.controller.startBoard(board);
+                            final saved = await _runKitchenAction(
+                              context,
+                              () => widget.controller.startBoard(board),
+                            );
+                            if (!saved) return;
                             if (!context.mounted) return;
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute<void>(
@@ -1300,10 +1415,13 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
     );
   }
 
-  Future<void> _add(KitchenBoard board) async {
+  Future<void> _add(BuildContext context, KitchenBoard board) async {
     final value = addController.text;
-    addController.clear();
-    await widget.controller.addTaskToDraft(board, value);
+    final saved = await _runKitchenAction(
+      context,
+      () => widget.controller.addTaskToDraft(board, value),
+    );
+    if (saved) addController.clear();
   }
 
   Future<void> _addResource(BuildContext context, KitchenStrings s) async {
@@ -1327,7 +1445,10 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
     );
     text.dispose();
     if (value != null && value.trim().isNotEmpty) {
-      await widget.controller.addResource(widget.board, value);
+      await _runKitchenAction(
+        context,
+        () => widget.controller.addResource(widget.board, value),
+      );
     }
   }
 
@@ -1353,11 +1474,14 @@ class _BoardReviewPageState extends State<BoardReviewPage> {
     );
     if (time == null) return;
     final target = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    await widget.controller.setTiming(
-      board,
-      mode: TimingMode.readyAt,
-      targetReadyAtEpochMs: target.millisecondsSinceEpoch,
-      timeZoneId: now.timeZoneName,
+    await _runKitchenAction(
+      context,
+      () => widget.controller.setTiming(
+        board,
+        mode: TimingMode.readyAt,
+        targetReadyAtEpochMs: target.millisecondsSinceEpoch,
+        timeZoneId: now.timeZoneName,
+      ),
     );
   }
 }
@@ -1394,10 +1518,13 @@ class StationEditor extends StatelessWidget {
                   child: _NumberField(
                     label: s.t('have'),
                     value: item.have,
-                    onValue: (value) => controller.updateStationItem(
-                      board,
-                      item,
-                      have: value,
+                    onValue: (value) => _runKitchenAction(
+                      context,
+                      () => controller.updateStationItem(
+                        board,
+                        item,
+                        have: value,
+                      ),
                     ),
                   ),
                 ),
@@ -1406,10 +1533,13 @@ class StationEditor extends StatelessWidget {
                   child: _NumberField(
                     label: s.t('par'),
                     value: item.par,
-                    onValue: (value) => controller.updateStationItem(
-                      board,
-                      item,
-                      par: value,
+                    onValue: (value) => _runKitchenAction(
+                      context,
+                      () => controller.updateStationItem(
+                        board,
+                        item,
+                        par: value,
+                      ),
                     ),
                   ),
                 ),
@@ -1428,10 +1558,13 @@ class StationEditor extends StatelessWidget {
                       labelText: s.t('unit'),
                       suffixIcon: PopupMenuButton<String>(
                         icon: const Icon(Icons.arrow_drop_down),
-                        onSelected: (value) => controller.updateStationItem(
-                          board,
-                          item,
-                          unit: value,
+                        onSelected: (value) => _runKitchenAction(
+                          context,
+                          () => controller.updateStationItem(
+                            board,
+                            item,
+                            unit: value,
+                          ),
                         ),
                         itemBuilder: (_) => [
                           for (final unit in const [
@@ -1441,8 +1574,10 @@ class StationEditor extends StatelessWidget {
                         ],
                       ),
                     ),
-                    onChanged: (value) =>
-                        controller.updateStationItem(board, item, unit: value),
+                    onChanged: (value) => _runKitchenAction(
+                      context,
+                      () => controller.updateStationItem(board, item, unit: value),
+                    ),
                   ),
                 ),
               ],
@@ -1579,7 +1714,10 @@ class LiveBoardPage extends StatelessWidget {
                           FilledButton.tonalIcon(
                             onPressed: () async {
                               if (board.status == BoardStatus.paused) {
-                                await controller.resumeBoard(board);
+                                await _runKitchenAction(
+                                  context,
+                                  () => controller.resumeBoard(board),
+                                );
                               } else {
                                 final ok = await _confirm(
                                   context,
@@ -1587,7 +1725,12 @@ class LiveBoardPage extends StatelessWidget {
                                   s,
                                   confirmLabel: s.t('pauseNewTasks'),
                                 );
-                                if (ok) await controller.pauseBoard(board);
+                                if (ok) {
+                                  await _runKitchenAction(
+                                    context,
+                                    () => controller.pauseBoard(board),
+                                  );
+                                }
                               }
                             },
                             icon: Icon(
@@ -1633,8 +1776,11 @@ class LiveBoardPage extends StatelessWidget {
                       );
                       if (!ok) return;
                       final messenger = ScaffoldMessenger.of(context);
-                      await controller.finishBoard(board);
-                      if (!context.mounted) return;
+                      final saved = await _runKitchenAction(
+                        context,
+                        () => controller.finishBoard(board),
+                      );
+                      if (!saved || !context.mounted) return;
                       Navigator.pop(context);
                       messenger.showSnackBar(
                         SnackBar(
@@ -1642,7 +1788,10 @@ class LiveBoardPage extends StatelessWidget {
                           content: Text(s.t('saved')),
                           action: SnackBarAction(
                             label: s.t('undo'),
-                            onPressed: () => controller.undoLastFinish(s),
+                            onPressed: () => _runKitchenValue(
+                              messenger.context,
+                              () => controller.undoLastFinish(s),
+                            ),
                           ),
                         ),
                       );
@@ -1697,12 +1846,15 @@ class LiveBoardPage extends StatelessWidget {
       ),
     );
     if (result == true) {
-      await controller.handoff(
-        board,
-        note: note.text,
-        keepTimersRunning: keepTimers,
+      final saved = await _runKitchenAction(
+        context,
+        () => controller.handoff(
+          board,
+          note: note.text,
+          keepTimersRunning: keepTimers,
+        ),
       );
-      if (context.mounted) {
+      if (saved && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(s.t('saved'))),
         );
@@ -1790,9 +1942,12 @@ class TaskActionCard extends StatelessWidget {
                     onPressed: board.status == BoardStatus.paused ||
                             task.status == TaskStatus.blocked
                         ? null
-                        : () => pausedTimer
-                            ? controller.resumeTaskTimer(board, task, s)
-                            : controller.startTask(board, task, s),
+                        : () => _runKitchenAction(
+                              context,
+                              () => pausedTimer
+                                  ? controller.resumeTaskTimer(board, task, s)
+                                  : controller.startTask(board, task, s),
+                            ),
                     icon: const Icon(Icons.play_arrow),
                     label: Text(pausedTimer ? s.t('resume') : s.t('start')),
                   ),
@@ -1804,24 +1959,34 @@ class TaskActionCard extends StatelessWidget {
                   ),
                   if (task.deadlineEpochMs != null)
                     OutlinedButton.icon(
-                      onPressed: () => controller.pauseTaskTimer(board, task),
+                      onPressed: () => _runKitchenAction(
+                        context,
+                        () => controller.pauseTaskTimer(board, task),
+                      ),
                       icon: const Icon(Icons.pause),
                       label: Text(s.t('pause')),
                     ),
                   if (task.deadlineEpochMs != null)
                     for (final minutes in const [1, 5, 10])
                       OutlinedButton(
-                        onPressed: () => controller.addTime(
-                          task,
-                          Duration(minutes: minutes),
-                          s,
+                        onPressed: () => _runKitchenAction(
+                          context,
+                          () => controller.addTime(
+                            board,
+                            task,
+                            Duration(minutes: minutes),
+                            s,
+                          ),
                         ),
                         child: Text('+$minutes ${s.t('minutes')}'),
                       ),
                 ],
                 if (!task.isTerminal && board.tasks.indexOf(task) > 0)
                   TextButton.icon(
-                    onPressed: () => controller.moveTaskToTop(board, task),
+                    onPressed: () => _runKitchenAction(
+                      context,
+                      () => controller.moveTaskToTop(board, task),
+                    ),
                     icon: const Icon(Icons.vertical_align_top_rounded),
                     label: Text(s.t('moveTop')),
                   ),
@@ -1832,7 +1997,10 @@ class TaskActionCard extends StatelessWidget {
                   ),
                 if (task.isTerminal)
                   TextButton(
-                    onPressed: () => controller.restore(board, task),
+                    onPressed: () => _runKitchenAction(
+                      context,
+                      () => controller.restore(board, task),
+                    ),
                     child: Text(s.t('restore')),
                   ),
               ],
@@ -1844,14 +2012,20 @@ class TaskActionCard extends StatelessWidget {
   }
 
   Future<void> _complete(BuildContext context, KitchenStrings s) async {
-    await controller.markDone(board, task);
-    if (!context.mounted) return;
+    final saved = await _runKitchenAction(
+      context,
+      () => controller.markDone(board, task),
+    );
+    if (!saved || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(s.t('done')),
         action: SnackBarAction(
           label: s.t('undo'),
-          onPressed: () => controller.restore(board, task),
+          onPressed: () => _runKitchenAction(
+            context,
+            () => controller.restore(board, task),
+          ),
         ),
       ),
     );
@@ -1867,14 +2041,20 @@ class TaskActionCard extends StatelessWidget {
       );
       if (!ok) return;
     }
-    await controller.markSkipped(board, task);
-    if (!context.mounted) return;
+    final saved = await _runKitchenAction(
+      context,
+      () => controller.markSkipped(board, task),
+    );
+    if (!saved || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(s.t('skip')),
         action: SnackBarAction(
           label: s.t('undo'),
-          onPressed: () => controller.restore(board, task),
+          onPressed: () => _runKitchenAction(
+            context,
+            () => controller.restore(board, task),
+          ),
         ),
       ),
     );
@@ -1931,20 +2111,26 @@ class LiveStationRow extends StatelessWidget {
               child: _NumberField(
                 label: s.t('prepared'),
                 value: item.prepared,
-                onValue: (value) => controller.updateStationItem(
-                  board,
-                  item,
-                  prepared: value,
+                onValue: (value) => _runKitchenAction(
+                  context,
+                  () => controller.updateStationItem(
+                    board,
+                    item,
+                    prepared: value,
+                  ),
                 ),
               ),
             ),
             FilterChip(
               selected: item.verified,
               label: Text(s.t('verified')),
-              onSelected: (value) => controller.updateStationItem(
-                board,
-                item,
-                verified: value,
+              onSelected: (value) => _runKitchenAction(
+                context,
+                () => controller.updateStationItem(
+                  board,
+                  item,
+                  verified: value,
+                ),
               ),
             ),
           ],
@@ -2001,13 +2187,19 @@ class SettingsPage extends StatelessWidget {
             secondary: const Icon(Icons.notifications_active_outlined),
             title: Text(s.t('timerAlerts')),
             value: controller.snapshot.timerAlertsEnabled,
-            onChanged: (value) => controller.setTimerAlerts(value, s),
+            onChanged: (value) => _runKitchenAction(
+              context,
+              () => controller.setTimerAlerts(value, s),
+            ),
           ),
           SwitchListTile(
             secondary: const Icon(Icons.light_mode_outlined),
             title: Text(s.t('keepAwake')),
             value: controller.snapshot.keepScreenAwake,
-            onChanged: controller.setKeepScreenAwake,
+            onChanged: (value) => _runKitchenAction(
+              context,
+              () => controller.setKeepScreenAwake(value),
+            ),
           ),
           ListTile(
             leading: const Icon(Icons.language_rounded),
@@ -2069,7 +2261,9 @@ class SettingsPage extends StatelessWidget {
                 s,
                 confirmLabel: s.t('delete'),
               );
-              if (ok) await controller.clearLocalData();
+              if (ok) {
+                await _runKitchenAction(context, controller.clearLocalData);
+              }
             },
           ),
         ],
@@ -2102,9 +2296,12 @@ Future<void> _languageDialog(
     ),
   );
   if (choice == null || !context.mounted) return;
-  await controller.setLanguage(
-    choice == 'system' ? null : choice,
-    WidgetsBinding.instance.platformDispatcher.locale,
+  await _runKitchenAction(
+    context,
+    () => controller.setLanguage(
+      choice == 'system' ? null : choice,
+      WidgetsBinding.instance.platformDispatcher.locale,
+    ),
   );
 }
 
@@ -2133,8 +2330,11 @@ Future<void> _regionDialog(
       ],
     ),
   );
-  if (choice != null) {
-    await controller.setRegion(choice.isEmpty ? null : choice);
+  if (choice != null && context.mounted) {
+    await _runKitchenAction(
+      context,
+      () => controller.setRegion(choice.isEmpty ? null : choice),
+    );
   }
 }
 
@@ -2189,10 +2389,13 @@ Future<void> _unitsDialog(
       ),
     ),
   );
-  if (save == true) {
-    await controller.setUnits(
-      unitSystem: unit,
-      temperatureUnit: temperature,
+  if (save == true && context.mounted) {
+    await _runKitchenAction(
+      context,
+      () => controller.setUnits(
+        unitSystem: unit,
+        temperatureUnit: temperature,
+      ),
     );
   }
 }
