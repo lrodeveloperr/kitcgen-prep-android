@@ -1,0 +1,9 @@
+name: Kitchen Prep Board
+version: 2.0.0
+flavors:
+  development:
+    app_name: Kitchen Prep Board Dev
+  staging:
+    app_name: Kitchen Prep Board Staging
+  production:
+    app_name: Kitchen Prep Board

@@ -1,15 +1,14 @@
 {
   "appId": "kitchen-prep-board",
-  "platform": "android",
+  "platforms": ["android", "ios"],
   "status": "LATEST",
-  "version": "v1.1.1",
-  "publishedDate": "2026-08-24",
-  "sourceLayout": "exploded-buildable-source",
-  "backendSchemaVersion": "1.1.0",
-  "backendSha256": "431414417d83201263951f0f3ed5854d38da88c7ec1b96c8e3d42168e556083b",
-  "uiContract": "contract/KitchenPrepBoard-UI-Contract-v1.0.0.json",
-  "uiContractSha256": "abf1e006048185aa2df4cb8a5843c423eab5e0821c34fbc47e84d41c50169cb5",
-  "verification": "VERIFICATION.json",
-  "sourcePackageSha256": "2e25505882a3977c7ae7562f347d0189fc90e41d16759075d681bac0c8f0e06d",
-  "note": "main contains the patched combined Jetpack Compose UI and executable local Android backend source. The previous presentation-only ZIP remains in Git history."
+  "version": "2.0.0",
+  "sourceRevision": "2026-08-30.1",
+  "publishedDate": "2026-08-30",
+  "sourceLayout": "flutter_app",
+  "template": "Very Good CLI",
+  "canonicalEntrypoint": "flutter_app/lib/main.dart",
+  "supportedLanguages": 10,
+  "supportedLocales": 11,
+  "note": "The reviewed cross-platform Flutter source is visible and canonical. The legacy Compose and SwiftUI presentation packages are retained only as history."
 }

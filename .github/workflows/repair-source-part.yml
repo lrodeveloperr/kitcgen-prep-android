@@ -1,0 +1,55 @@
+name: Repair Kitchen Source Part
+
+on:
+  push:
+    branches: [vgc-release-candidate]
+    paths:
+      - .source/part03.chunk09
+      - .source/part03.chunk24
+      - .github/workflows/repair-source-part.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: vgc-release-candidate
+      - name: Repair and verify source part
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          p=bytearray(Path('.source/integration.part03').read_bytes())
+          for idx in (9,24):
+              chunk=Path(f'.source/part03.chunk{idx:02d}').read_bytes()
+              assert len(chunk)==512, (idx,len(chunk))
+              p[idx*512:(idx+1)*512]=chunk
+          Path('.source/integration.part03').write_bytes(p)
+          got=hashlib.sha256(p).hexdigest()
+          want='8c80720a8d87c3986543e2955da307ccde26402aebdc7b8136f0b7318e74ae25'
+          print('part03_sha256',got)
+          assert got==want, (got,want)
+          PY
+          cat .source/integration.part00 .source/integration.part01 .source/integration.part02 .source/integration.part03 > "$RUNNER_TEMP/integration.b64"
+          echo '18a85cefef0b769066b8c9d89a06e9015f0441a278b9af649db4c3106566ad52  '"$RUNNER_TEMP/integration.b64" | sha256sum -c -
+          base64 --decode "$RUNNER_TEMP/integration.b64" > "$RUNNER_TEMP/integration.tgz"
+          tar -tzf "$RUNNER_TEMP/integration.tgz" >/dev/null
+      - name: Commit repaired part
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'kitchen-build-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add .source/integration.part03
+          if git diff --cached --quiet; then
+            echo 'Source part already repaired.'
+          else
+            git commit -m 'fix: repair reviewed Kitchen source archive'
+            git push origin HEAD:vgc-release-candidate
+          fi

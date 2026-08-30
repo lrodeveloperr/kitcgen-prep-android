@@ -1,0 +1,76 @@
+name: Build Kitchen VGC Review APK
+
+on:
+  push:
+    branches:
+      - vgc-release-candidate
+    paths:
+      - .github/workflows/vgc-release-apk.yml
+      - flutter_app/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kitchen-vgc-review-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out release candidate
+        uses: actions/checkout@v7
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+
+      - name: Resolve packages
+        working-directory: flutter_app
+        run: flutter pub get
+
+      - name: Analyze for blocking issues
+        working-directory: flutter_app
+        shell: bash
+        run: |
+          set +e
+          flutter analyze 2>&1 | tee "$RUNNER_TEMP/flutter-analyze.log"
+          analyze_rc=${PIPESTATUS[0]}
+          set -e
+          if grep -Eq '^[[:space:]]*(error|warning) •' "$RUNNER_TEMP/flutter-analyze.log"; then
+            echo 'Blocking analyzer error or warning found.' >&2
+            exit "$analyze_rc"
+          fi
+          echo 'Analyzer contains info-level cleanup only; continuing review build.'
+
+      - name: Unit and widget tests
+        working-directory: flutter_app
+        run: flutter test
+
+      - name: Build production-identity review APK
+        working-directory: flutter_app
+        run: flutter build apk --debug --flavor production -t lib/main.dart --build-name 2.0.0 --build-number 200
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="flutter_app/build/app/outputs/flutter-apk/app-production-debug.apk"
+          test -s "$apk"
+          cp "$apk" Kitchen-Prep-Board-English-Review.apk
+          sha256sum Kitchen-Prep-Board-English-Review.apk | tee Kitchen-Prep-Board-English-Review.apk.sha256
+
+      - name: Upload review APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kitchen-Prep-Board-English-Review
+          path: |
+            Kitchen-Prep-Board-English-Review.apk
+            Kitchen-Prep-Board-English-Review.apk.sha256
+          if-no-files-found: error
+          retention-days: 14
