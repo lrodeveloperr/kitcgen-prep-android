@@ -59,6 +59,7 @@ class _FakeNotifications extends TimerNotifications {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   final strings = KitchenStrings(const Locale('en'));
 
   test('failed saves restore the last durable snapshot', () async {
