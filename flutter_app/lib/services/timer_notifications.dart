@@ -14,15 +14,11 @@ int resolveTimerNotificationId(String input, Map<int, String?> pending) {
     if (entry.value == input) return entry.key;
   }
 
-  var hash = 0x811c9dc5;
-  for (final unit in input.codeUnits) {
-    hash ^= unit;
-    hash = (hash * 0x01000193) & 0x7fffffff;
+  var id = Object.hash(input, 'timer_notification') & 0x7fffffff;
+  while (pending.containsKey(id)) {
+    id = (id + 1) & 0x7fffffff;
   }
-  while (pending.containsKey(hash)) {
-    hash = (hash + 1) & 0x7fffffff;
-  }
-  return hash;
+  return id;
 }
 
 class TimerNotifications {
