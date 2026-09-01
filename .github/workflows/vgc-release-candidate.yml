@@ -1,0 +1,72 @@
+name: Kitchen VGC Release Candidate
+
+on:
+  push:
+    branches:
+      - vgc-release-candidate
+    paths:
+      - flutter_app/**
+      - .github/workflows/vgc-release-candidate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Analyze, test and build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+      - name: Resolve packages
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Static analysis
+        working-directory: flutter_app
+        run: flutter analyze --no-fatal-infos
+      - name: Unit tests
+        working-directory: flutter_app
+        run: flutter test
+      - name: Build production-flavor test APK
+        working-directory: flutter_app
+        run: flutter build apk --debug --flavor production -t lib/main.dart
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find flutter_app/build/app/outputs/flutter-apk -maxdepth 1 -type f -name '*production-debug.apk' -print -quit)"
+          [[ -n "$apk" ]] || { echo 'Production debug APK not found.' >&2; exit 1; }
+          test -s "$apk"
+          sha256sum "$apk"
+          echo "APK_PATH=$apk" >> "$GITHUB_ENV"
+      - name: Retain Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kitchen-Prep-Board-VGC-Android-APK
+          path: ${{ env.APK_PATH }}
+          if-no-files-found: error
+          retention-days: 14
+
+  ios-compile:
+    name: Compile same Flutter code for iOS
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+      - name: Resolve packages
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Compile production flavor without signing
+        working-directory: flutter_app
+        run: flutter build ios --release --no-codesign --flavor production -t lib/main.dart
