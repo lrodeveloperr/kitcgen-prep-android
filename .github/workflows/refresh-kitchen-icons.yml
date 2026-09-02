@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - .github/workflows/refresh-kitchen-icons.yml
-      - flutter_app/kitchen_prep_mark.png
   workflow_dispatch:
 
 permissions:
@@ -20,16 +19,49 @@ jobs:
       - name: Install image tooling
         run: python3 -m pip install --disable-pip-version-check pillow
 
-      - name: Generate iOS and Android icons from canonical mark
+      - name: Generate canonical Kitchen mark and platform icons
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          from PIL import Image
+          from PIL import Image, ImageDraw
 
           root = Path("flutter_app")
-          src = Image.open(root / "kitchen_prep_mark.png").convert("RGB")
+          BG = "#F7F5EE"
+          TEAL = "#4D8880"
+          SAGE = "#7F9655"
+          GOLD = "#D1A044"
+          INK = "#213330"
+          WHITE = "#FFFFFF"
+
+          size = 1024
+          src = Image.new("RGB", (size, size), BG)
+          d = ImageDraw.Draw(src)
+
+          d.rounded_rectangle((190, 195, 834, 865), radius=120, fill=TEAL)
+          d.rounded_rectangle((405, 126, 619, 235), radius=52, fill=TEAL)
+          d.rounded_rectangle((458, 157, 566, 199), radius=21, fill=BG)
+
+          rows = [(300, 390), (455, 545), (610, 700)]
+          dot_colors = [SAGE, GOLD, BG]
+          for i, (y1, y2) in enumerate(rows):
+              d.rounded_rectangle((285, y1, 725, y2), radius=44, fill=WHITE)
+              d.ellipse((325, y1+37, 401, y1+113), fill=dot_colors[i])
+              d.rounded_rectangle((440, y1+38, 650, y1+62), radius=12, fill=INK)
+              d.rounded_rectangle((440, y1+83, 590, y1+103), radius=10, fill=INK)
+
+          cx, cy, r = 735, 285, 112
+          d.ellipse((cx-r, cy-r, cx+r, cy+r), fill=GOLD)
+          d.ellipse((cx-r+24, cy-r+24, cx+r-24, cy+r-24), fill=BG)
+          d.line((cx, cy, cx, cy-54), fill=INK, width=24)
+          d.line((cx, cy, cx+42, cy+22), fill=INK, width=24)
+          d.ellipse((cx-16, cy-16, cx+16, cy+16), fill=INK)
+
+          d.rounded_rectangle((290, 830, 390, 900), radius=30, fill=INK)
+          d.rounded_rectangle((634, 830, 734, 900), radius=30, fill=INK)
+
+          src.save(root / "kitchen_prep_mark.png", optimize=True)
 
           ios = root / "ios/Runner/Assets.xcassets/AppIcon.appiconset"
           ios.mkdir(parents=True, exist_ok=True)
@@ -62,11 +94,11 @@ jobs:
           }
           res = root / "android/app/src/main/res"
           for folder, px in android_sizes.items():
-              d = res / folder
-              d.mkdir(parents=True, exist_ok=True)
+              out = res / folder
+              out.mkdir(parents=True, exist_ok=True)
               icon = src.resize((px, px), Image.Resampling.LANCZOS)
-              icon.save(d / "ic_launcher.png", optimize=True)
-              icon.save(d / "ic_launcher_round.png", optimize=True)
+              icon.save(out / "ic_launcher.png", optimize=True)
+              icon.save(out / "ic_launcher_round.png", optimize=True)
           PY
 
           cat > flutter_app/android/app/src/main/res/values/ic_launcher_background.xml <<'XML'
@@ -82,30 +114,19 @@ jobs:
               android:height="108dp"
               android:viewportWidth="108"
               android:viewportHeight="108">
-              <path android:fillColor="#4D8880"
-                  android:pathData="M25,24 H79 V87 H25 Z"/>
-              <path android:fillColor="#4D8880"
-                  android:pathData="M40,16 H64 V28 H40 Z"/>
-              <path android:fillColor="#F7F5EE"
-                  android:pathData="M46,19 H58 V23 H46 Z"/>
-              <path android:fillColor="#FFFFFF"
-                  android:pathData="M33,38 H70 V48 H33 Z"/>
-              <path android:fillColor="#FFFFFF"
-                  android:pathData="M33,54 H70 V64 H33 Z"/>
-              <path android:fillColor="#FFFFFF"
-                  android:pathData="M33,70 H70 V80 H33 Z"/>
-              <path android:fillColor="#7F9655"
-                  android:pathData="M37,43 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
-              <path android:fillColor="#D1A044"
-                  android:pathData="M37,59 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
-              <path android:fillColor="#F7F5EE"
-                  android:pathData="M37,75 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
+              <path android:fillColor="#4D8880" android:pathData="M25,24 H79 V87 H25 Z"/>
+              <path android:fillColor="#4D8880" android:pathData="M40,16 H64 V28 H40 Z"/>
+              <path android:fillColor="#F7F5EE" android:pathData="M46,19 H58 V23 H46 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M33,38 H70 V48 H33 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M33,54 H70 V64 H33 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M33,70 H70 V80 H33 Z"/>
+              <path android:fillColor="#7F9655" android:pathData="M37,43 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
+              <path android:fillColor="#D1A044" android:pathData="M37,59 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
+              <path android:fillColor="#F7F5EE" android:pathData="M37,75 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
               <path android:fillColor="#213330"
                   android:pathData="M44,41 H64 V44 H44 Z M44,45 H58 V47 H44 Z M44,57 H64 V60 H44 Z M44,61 H58 V63 H44 Z M44,73 H64 V76 H44 Z M44,77 H58 V79 H44 Z"/>
-              <path android:fillColor="#D1A044"
-                  android:pathData="M76,31 m-12,0 a12,12 0,1 0,24,0 a12,12 0,1 0,-24,0"/>
-              <path android:fillColor="#F7F5EE"
-                  android:pathData="M76,31 m-8,0 a8,8 0,1 0,16,0 a8,8 0,1 0,-16,0"/>
+              <path android:fillColor="#D1A044" android:pathData="M76,31 m-12,0 a12,12 0,1 0,24,0 a12,12 0,1 0,-24,0"/>
+              <path android:fillColor="#F7F5EE" android:pathData="M76,31 m-8,0 a8,8 0,1 0,16,0 a8,8 0,1 0,-16,0"/>
               <path android:strokeColor="#213330" android:strokeWidth="2.7"
                   android:strokeLineCap="round" android:fillColor="@android:color/transparent"
                   android:pathData="M76,31 L76,25 M76,31 L81,34"/>
