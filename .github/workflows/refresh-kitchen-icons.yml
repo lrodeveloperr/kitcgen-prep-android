@@ -1,0 +1,131 @@
+name: Refresh Kitchen app identity
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/refresh-kitchen-icons.yml
+      - flutter_app/kitchen_prep_mark.png
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install image tooling
+        run: python3 -m pip install --disable-pip-version-check pillow
+
+      - name: Generate iOS and Android icons from canonical mark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          root = Path("flutter_app")
+          src = Image.open(root / "kitchen_prep_mark.png").convert("RGB")
+
+          ios = root / "ios/Runner/Assets.xcassets/AppIcon.appiconset"
+          ios.mkdir(parents=True, exist_ok=True)
+          sizes = {
+              "Icon-App-20x20@1x.png": 20,
+              "Icon-App-20x20@2x.png": 40,
+              "Icon-App-20x20@3x.png": 60,
+              "Icon-App-29x29@1x.png": 29,
+              "Icon-App-29x29@2x.png": 58,
+              "Icon-App-29x29@3x.png": 87,
+              "Icon-App-40x40@1x.png": 40,
+              "Icon-App-40x40@2x.png": 80,
+              "Icon-App-40x40@3x.png": 120,
+              "Icon-App-60x60@2x.png": 120,
+              "Icon-App-60x60@3x.png": 180,
+              "Icon-App-76x76@1x.png": 76,
+              "Icon-App-76x76@2x.png": 152,
+              "Icon-App-83.5x83.5@2x.png": 167,
+              "Icon-App-1024x1024@1x.png": 1024,
+          }
+          for name, px in sizes.items():
+              src.resize((px, px), Image.Resampling.LANCZOS).save(ios / name, optimize=True)
+
+          android_sizes = {
+              "mipmap-mdpi": 48,
+              "mipmap-hdpi": 72,
+              "mipmap-xhdpi": 96,
+              "mipmap-xxhdpi": 144,
+              "mipmap-xxxhdpi": 192,
+          }
+          res = root / "android/app/src/main/res"
+          for folder, px in android_sizes.items():
+              d = res / folder
+              d.mkdir(parents=True, exist_ok=True)
+              icon = src.resize((px, px), Image.Resampling.LANCZOS)
+              icon.save(d / "ic_launcher.png", optimize=True)
+              icon.save(d / "ic_launcher_round.png", optimize=True)
+          PY
+
+          cat > flutter_app/android/app/src/main/res/values/ic_launcher_background.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="ic_launcher_background">#F7F5EE</color>
+          </resources>
+          XML
+
+          cat > flutter_app/android/app/src/main/res/drawable/ic_launcher_foreground.xml <<'XML'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path android:fillColor="#4D8880"
+                  android:pathData="M25,24 H79 V87 H25 Z"/>
+              <path android:fillColor="#4D8880"
+                  android:pathData="M40,16 H64 V28 H40 Z"/>
+              <path android:fillColor="#F7F5EE"
+                  android:pathData="M46,19 H58 V23 H46 Z"/>
+              <path android:fillColor="#FFFFFF"
+                  android:pathData="M33,38 H70 V48 H33 Z"/>
+              <path android:fillColor="#FFFFFF"
+                  android:pathData="M33,54 H70 V64 H33 Z"/>
+              <path android:fillColor="#FFFFFF"
+                  android:pathData="M33,70 H70 V80 H33 Z"/>
+              <path android:fillColor="#7F9655"
+                  android:pathData="M37,43 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
+              <path android:fillColor="#D1A044"
+                  android:pathData="M37,59 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
+              <path android:fillColor="#F7F5EE"
+                  android:pathData="M37,75 m-4,0 a4,4 0,1 0,8,0 a4,4 0,1 0,-8,0"/>
+              <path android:fillColor="#213330"
+                  android:pathData="M44,41 H64 V44 H44 Z M44,45 H58 V47 H44 Z M44,57 H64 V60 H44 Z M44,61 H58 V63 H44 Z M44,73 H64 V76 H44 Z M44,77 H58 V79 H44 Z"/>
+              <path android:fillColor="#D1A044"
+                  android:pathData="M76,31 m-12,0 a12,12 0,1 0,24,0 a12,12 0,1 0,-24,0"/>
+              <path android:fillColor="#F7F5EE"
+                  android:pathData="M76,31 m-8,0 a8,8 0,1 0,16,0 a8,8 0,1 0,-16,0"/>
+              <path android:strokeColor="#213330" android:strokeWidth="2.7"
+                  android:strokeLineCap="round" android:fillColor="@android:color/transparent"
+                  android:pathData="M76,31 L76,25 M76,31 L81,34"/>
+          </vector>
+          XML
+
+      - name: Commit generated identity assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add flutter_app/kitchen_prep_mark.png \
+                  flutter_app/ios/Runner/Assets.xcassets/AppIcon.appiconset \
+                  flutter_app/android/app/src/main/res/mipmap-* \
+                  flutter_app/android/app/src/main/res/drawable/ic_launcher_foreground.xml \
+                  flutter_app/android/app/src/main/res/values/ic_launcher_background.xml
+          if git diff --cached --quiet; then
+            echo "Identity assets already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "design: apply representative Kitchen prep-board logo"
+          git push origin HEAD:main
