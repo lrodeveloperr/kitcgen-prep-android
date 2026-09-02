@@ -1,0 +1,444 @@
+name: Apply premium Kitchen reskin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/premium-reskin.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  reskin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Apply commercially-safe premium presentation layer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          shell = Path('flutter_app/lib/features/kitchen_shell.dart')
+          text = shell.read_text()
+
+          old_colors = '''abstract final class _WorkbenchColors {
+  static const sage = Color(0xFF315D4B);
+  static const sageSoft = Color(0xFFDDE9E1);
+  static const paper = Color(0xFFFFFCF5);
+  static const charcoal = Color(0xFF1F2B26);
+  static const orange = Color(0xFFE6843D);
+  static const orangeSoft = Color(0xFFFFE5D2);
+  static const line = Color(0xFFE1E5DD);
+  static const muted = Color(0xFF65706A);
+}'''
+          new_colors = '''abstract final class _WorkbenchColors {
+  static const sage = Color(0xFF315D4B);
+  static const sageDeep = Color(0xFF173A2F);
+  static const sageSoft = Color(0xFFDDE9E1);
+  static const paper = Color(0xFFFFFCF5);
+  static const canvas = Color(0xFFF4F1E8);
+  static const charcoal = Color(0xFF17231F);
+  static const orange = Color(0xFFE6843D);
+  static const orangeSoft = Color(0xFFFFE5D2);
+  static const gold = Color(0xFFD3A443);
+  static const line = Color(0xFFDCE1D9);
+  static const muted = Color(0xFF65706A);
+  static const shadow = Color(0x24182B24);
+}'''
+          if old_colors not in text:
+              raise SystemExit('Workbench color block changed; refusing blind reskin')
+          text = text.replace(old_colors, new_colors)
+
+          start = text.index('class PageFrame extends StatelessWidget {')
+          end = text.index('\nclass HomePage extends StatelessWidget {', start)
+          new_frame = r'''class PageFrame extends StatelessWidget {
+  const PageFrame({required this.title, required this.child, this.action, super.key});
+  final String title;
+  final Widget child;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final compactHeight = media.size.height <= 700;
+    final compactWidth = media.size.width <= 360;
+    final horizontal = compactWidth ? 14.0 : 18.0;
+    final titleStyle = (compactHeight
+            ? Theme.of(context).textTheme.titleLarge
+            : Theme.of(context).textTheme.headlineSmall)
+        ?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.45,
+      color: _WorkbenchColors.charcoal,
+    );
+
+    return SafeArea(
+      bottom: false,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 980),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontal,
+                    compactHeight ? 8 : 12,
+                    horizontal,
+                    compactHeight ? 10 : 14,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: titleStyle,
+                        ),
+                      ),
+                      if (action != null) ...[
+                        const SizedBox(width: 10),
+                        action!,
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 20),
+                sliver: SliverToBoxAdapter(child: child),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+'''
+          text = text[:start] + new_frame + text[end:]
+
+          # Premium empty-state surface: restrained depth, no giant header gap.
+          text = text.replace(
+'''                padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                decoration: BoxDecoration(
+                  color: _WorkbenchColors.paper,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: _WorkbenchColors.line),
+                ),''',
+'''                padding: EdgeInsets.fromLTRB(
+                  20,
+                  MediaQuery.sizeOf(context).height <= 700 ? 18 : 22,
+                  20,
+                  20,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFFEFA), Color(0xFFF2F6F1)],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: _WorkbenchColors.line),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: _WorkbenchColors.shadow,
+                      blurRadius: 24,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+                ),''',
+1,
+          )
+
+          # Keep the empty-state mark compact on short iPhones.
+          text = text.replace(
+'''                        width: 88,
+                        height: 88,''',
+'''                        width: MediaQuery.sizeOf(context).height <= 700 ? 64 : 76,
+                        height: MediaQuery.sizeOf(context).height <= 700 ? 64 : 76,''',
+1,
+          )
+          text = text.replace("                    const SizedBox(height: 18),", "                    SizedBox(height: MediaQuery.sizeOf(context).height <= 700 ? 12 : 16),", 1)
+
+          # Replace the 4-column fixed metric row with an adaptive 2/4-column grid.
+          metric_pattern = re.compile(r'''            Row\(\n              children: \[\n                Expanded\(\n                  child: _LaneMetric\(\n                    label: s\.t\('now'\),.*?                \),\n              \],\n            \),''', re.S)
+          metric_replacement = r'''            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth < 360 ? 2 : 4;
+                final itemWidth =
+                    (constraints.maxWidth - (columns - 1) * 8) / columns;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    SizedBox(
+                      width: itemWidth,
+                      child: _LaneMetric(
+                        label: s.t('now'),
+                        value: now,
+                        color: _WorkbenchColors.orange,
+                      ),
+                    ),
+                    SizedBox(
+                      width: itemWidth,
+                      child: _LaneMetric(
+                        label: s.t('next'),
+                        value: next,
+                        color: _WorkbenchColors.sage,
+                      ),
+                    ),
+                    SizedBox(
+                      width: itemWidth,
+                      child: _LaneMetric(
+                        label: s.t('waiting'),
+                        value: waiting,
+                        color: _WorkbenchColors.muted,
+                      ),
+                    ),
+                    SizedBox(
+                      width: itemWidth,
+                      child: _LaneMetric(
+                        label: s.t('done'),
+                        value: board.doneCount,
+                        color: const Color(0xFF6E8C65),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),'''
+          text, n = metric_pattern.subn(metric_replacement, text, count=1)
+          if n != 1:
+              raise SystemExit('ActiveSummary metric row not found')
+
+          # Add premium depth to the active board surface.
+          active_old = '''          color: _WorkbenchColors.paper,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: _WorkbenchColors.line),'''
+          active_new = '''          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFFEFA), Color(0xFFF0F5F1)],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: _WorkbenchColors.line),
+          boxShadow: const [
+            BoxShadow(
+              color: _WorkbenchColors.shadow,
+              blurRadius: 22,
+              offset: Offset(0, 9),
+            ),
+          ],'''
+          text = text.replace(active_old, active_new, 1)
+
+          # Make catalogue rows feel like tappable premium list surfaces without increasing vertical bulk.
+          text = text.replace(
+'''          for (final item in filtered)
+            CheckboxListTile(
+              value: selected.contains(item.id),
+              title: Text(item.display(locale)),
+              dense: true,
+              onChanged: (_) => setState(() {
+                selected.contains(item.id)
+                    ? selected.remove(item.id)
+                    : selected.add(item.id);
+              }),
+            ),''',
+'''          for (final item in filtered)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Material(
+                color: selected.contains(item.id)
+                    ? _WorkbenchColors.sageSoft.withValues(alpha: 0.72)
+                    : _WorkbenchColors.paper,
+                borderRadius: BorderRadius.circular(16),
+                child: CheckboxListTile(
+                  value: selected.contains(item.id),
+                  title: Text(
+                    item.display(locale),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  dense: true,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  onChanged: (_) => setState(() {
+                    selected.contains(item.id)
+                        ? selected.remove(item.id)
+                        : selected.add(item.id);
+                  }),
+                ),
+              ),
+            ),''',
+1,
+          )
+
+          shell.write_text(text)
+
+          main = Path('flutter_app/lib/main.dart')
+          m = main.read_text()
+          m = m.replace("surface: useIOSWorkbench\n              ? const Color(0xFFF7F3E8)\n              : const Color(0xFFF8FAF7),", "surface: useIOSWorkbench\n              ? const Color(0xFFF4F1E8)\n              : const Color(0xFFF8FAF7),")
+          m = m.replace("scaffoldBackgroundColor: colors.surface,", "scaffoldBackgroundColor: const Color(0xFFF4F1E8),")
+          m = m.replace(
+'''            cardTheme: CardThemeData(
+              margin: EdgeInsets.zero,
+              elevation: 0,
+              color: useIOSWorkbench
+                  ? const Color(0xFFFFFCF5)
+                  : colors.surfaceContainerLow,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(useIOSWorkbench ? 18 : 12),
+                side: BorderSide(
+                  color: useIOSWorkbench
+                      ? const Color(0xFFE1E5DD)
+                      : colors.outlineVariant,
+                ),
+              ),
+            ),''',
+'''            cardTheme: CardThemeData(
+              margin: EdgeInsets.zero,
+              elevation: useIOSWorkbench ? 2.5 : 1.5,
+              shadowColor: const Color(0x26182B24),
+              color: useIOSWorkbench
+                  ? const Color(0xFFFFFEFA)
+                  : colors.surfaceContainerLow,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(useIOSWorkbench ? 20 : 14),
+                side: BorderSide(
+                  color: useIOSWorkbench
+                      ? const Color(0xFFDCE1D9)
+                      : colors.outlineVariant,
+                ),
+              ),
+            ),'''
+          )
+          m = m.replace("height: useIOSWorkbench ? 68 : 80,", "height: useIOSWorkbench ? 62 : 72,")
+          m = m.replace("? const Color(0xFFFFFCF5)\n                  : colors.surface,", "? const Color(0xFFFFFEFA)\n                  : colors.surface,")
+          main.write_text(m)
+
+          monet = Path('flutter_app/lib/services/monetization_service.dart')
+          s = monet.read_text()
+          s = s.replace('bool get supportsAds => Platform.isAndroid;', 'bool get supportsAds => Platform.isAndroid || Platform.isIOS;')
+          s = s.replace(
+'''    // Kitchen Prep Board is a paid, ad-free app on iOS. The canonical shared
+    // source keeps Android's remove-ads subscription, while the signed iOS
+    // release workflow also strips both store/ad plugins from the bundle.
+    if (!supportsAds) {
+      removeAds = true;
+      initialized = true;
+      notifyListeners();
+      return;
+    }
+''',
+'''    if (!supportsAds) {
+      removeAds = true;
+      initialized = true;
+      notifyListeners();
+      return;
+    }
+'''
+          )
+          monet.write_text(s)
+
+          # Add a compact-device regression contract. The test deliberately reserves
+          # both banner and bottom-navigation height, matching the user's real iPhone test.
+          test = Path('flutter_app/test/premium_scaling_contract_test.dart')
+          test.write_text(r'''import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kitchen_prep_board/features/kitchen_shell.dart';
+
+void main() {
+  const viewports = <Size>[
+    Size(320, 568),
+    Size(375, 667),
+    Size(390, 844),
+    Size(430, 932),
+    Size(768, 1024),
+    Size(1024, 1366),
+  ];
+
+  for (final size in viewports) {
+    testWidgets('premium shell fits ${size.width.toInt()}x${size.height.toInt()}',
+        (tester) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                Expanded(
+                  child: PageFrame(
+                    title: 'Kitchen Prep',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Card(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Dinner prep', style: TextStyle(fontSize: 20)),
+                                SizedBox(height: 8),
+                                Text('2 now · 3 waiting · 4 next'),
+                                SizedBox(height: 12),
+                                FilledButton(onPressed: null, child: Text('Continue')),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 50),
+                NavigationBar(
+                  destinations: [
+                    NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+                    NavigationDestination(icon: Icon(Icons.view_list), label: 'Boards'),
+                    NavigationDestination(icon: Icon(Icons.add), label: 'New'),
+                    NavigationDestination(icon: Icon(Icons.tune), label: 'Settings'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Kitchen Prep'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
+    });
+  }
+}
+''')
+          PY
+
+      - name: Commit premium reskin
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add flutter_app/lib flutter_app/test/premium_scaling_contract_test.dart
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'design: premium adaptive Kitchen workbench reskin'
+          git push origin HEAD:main
