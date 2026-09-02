@@ -57,4 +57,4 @@ jobs:
           test -f "$app/PrivacyInfo.xcprivacy"
           ! find "$app" -iname '*GoogleMobileAds*' -o -iname '*StoreKit*' | grep -q .
           ! strings "$app/Runner" | grep -Eq 'GADApplicationIdentifier|google_mobile_ads|remove_ads_monthly'
-          plutil -lint ../store/app-store/en-US.json
+          python3 -m json.tool ../store/app-store/en-US.json >/dev/null
