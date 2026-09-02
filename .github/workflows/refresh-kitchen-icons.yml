@@ -1,4 +1,4 @@
-name: Refresh Command Rail app identity
+name: Refresh Kitchen Ocean Pearl identity
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Install image tooling
         run: python3 -m pip install --disable-pip-version-check pillow
-      - name: Materialize canonical Command Rail mark
+      - name: Materialize canonical Ocean Pearl mark
         shell: bash
         run: |
           set -euo pipefail
@@ -71,5 +71,5 @@ jobs:
           git diff --cached --quiet && exit 0
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'build: refresh Command Rail identity derivatives'
+          git commit -m 'build: refresh Ocean Pearl identity derivatives'
           git push origin HEAD:main

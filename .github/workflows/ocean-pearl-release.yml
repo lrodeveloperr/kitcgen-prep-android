@@ -1,18 +1,18 @@
-name: Validate Command Rail Flutter skin
+name: Validate Ocean Pearl Flutter skin
 
 on:
   pull_request:
     branches: [main]
     paths:
       - flutter_app/**
-      - .github/workflows/command-rail-release.yml
+      - .github/workflows/ocean-pearl-release.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: command-rail-${{ github.event.pull_request.number || github.ref }}
+  group: ocean-pearl-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -39,17 +39,17 @@ jobs:
         working-directory: flutter_app
         run: >-
           flutter test --update-goldens
-          --dart-define=CAPTURE_COMMAND_RAIL=true
-          test/command_rail_scaling_contract_test.dart
+          --dart-define=CAPTURE_OCEAN_PEARL=true
+          test/ocean_pearl_scaling_contract_test.dart
       - name: Retain visual QA capture
         uses: actions/upload-artifact@v7
         with:
-          name: Command-Rail-Visual-QA
-          path: flutter_app/test/goldens/command_rail_phone.png
+          name: Ocean-Pearl-Visual-QA
+          path: flutter_app/test/goldens/ocean_pearl_*.png
           if-no-files-found: error
           retention-days: 7
       - name: Compile production iOS app
         working-directory: flutter_app
         run: >-
           flutter build ios --release --no-codesign --flavor production
-          --target lib/main.dart --build-name 2.0.0 --build-number 303
+          --target lib/main.dart --build-name 2.0.0 --build-number 305

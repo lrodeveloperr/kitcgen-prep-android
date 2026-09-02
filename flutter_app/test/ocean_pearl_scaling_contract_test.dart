@@ -37,7 +37,7 @@ class _SilentNotifications extends TimerNotifications {
 }
 
 Future<({KitchenController controller, KitchenBoard board})>
-    _commandRailFixture() async {
+    _oceanPearlFixture() async {
   final controller = KitchenController(
     store: _MemoryStore(),
     notifications: _SilentNotifications(),
@@ -79,8 +79,8 @@ Widget _testApp(
     theme: ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      colorSchemeSeed: const Color(0xFFD85B00),
-      scaffoldBackgroundColor: const Color(0xFFF7F3EA),
+      colorSchemeSeed: const Color(0xFF247BD1),
+      scaffoldBackgroundColor: const Color(0xFFEEF6FF),
     ),
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context).copyWith(
@@ -89,7 +89,7 @@ Widget _testApp(
       child: child!,
     ),
     home: RepaintBoundary(
-      key: const Key('command-rail-capture'),
+      key: const Key('ocean-pearl-capture'),
       child: LiveBoardPage(controller: controller, board: board),
     ),
   );
@@ -112,7 +112,7 @@ void main() {
 
   for (final size in viewports) {
     testWidgets(
-      'Command Rail fits ${size.width.toInt()}x${size.height.toInt()}',
+      'Ocean Pearl fits ${size.width.toInt()}x${size.height.toInt()}',
       (tester) async {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
@@ -120,7 +120,7 @@ void main() {
           tester.view.resetPhysicalSize();
           tester.view.resetDevicePixelRatio();
         });
-        final fixture = await _commandRailFixture();
+        final fixture = await _oceanPearlFixture();
         addTearDown(fixture.controller.dispose);
 
         await tester.pumpWidget(
@@ -148,7 +148,7 @@ void main() {
 
   for (final size in const [Size(320, 568), Size(390, 844), Size(768, 1024)]) {
     testWidgets(
-      'Command Rail supports large text at ${size.width.toInt()}x${size.height.toInt()}',
+      'Ocean Pearl supports large text at ${size.width.toInt()}x${size.height.toInt()}',
       (tester) async {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
@@ -156,7 +156,7 @@ void main() {
           tester.view.resetPhysicalSize();
           tester.view.resetDevicePixelRatio();
         });
-        final fixture = await _commandRailFixture();
+        final fixture = await _oceanPearlFixture();
         addTearDown(fixture.controller.dispose);
 
         await tester.pumpWidget(
@@ -170,9 +170,9 @@ void main() {
     );
   }
 
-  testWidgets('captures the selected Command Rail target for visual QA',
+  testWidgets('captures the selected Ocean Pearl target for visual QA',
       (tester) async {
-    const capture = bool.fromEnvironment('CAPTURE_COMMAND_RAIL');
+    const capture = bool.fromEnvironment('CAPTURE_OCEAN_PEARL');
     if (!capture) return;
     tester.view.physicalSize = const Size(430, 932);
     tester.view.devicePixelRatio = 1;
@@ -180,13 +180,73 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final fixture = await _commandRailFixture();
+    final fixture = await _oceanPearlFixture();
     addTearDown(fixture.controller.dispose);
     await tester.pumpWidget(_testApp(fixture.controller, fixture.board));
     await tester.pump();
     await expectLater(
-      find.byKey(const Key('command-rail-capture')),
-      matchesGoldenFile('goldens/command_rail_phone.png'),
+      find.byKey(const Key('ocean-pearl-capture')),
+      matchesGoldenFile('goldens/ocean_pearl_phone.png'),
     );
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.light,
+          colorSchemeSeed: const Color(0xFF247BD1),
+          scaffoldBackgroundColor: const Color(0xFFEEF6FF),
+        ),
+        home: RepaintBoundary(
+          key: const Key('ocean-pearl-shell-capture'),
+          child: KitchenShell(controller: fixture.controller),
+        ),
+      ),
+    );
+    await tester.pump();
+    await expectLater(
+      find.byKey(const Key('ocean-pearl-shell-capture')),
+      matchesGoldenFile('goldens/ocean_pearl_home.png'),
+    );
+  });
+
+  testWidgets('PressBench bottom bar changes all four destinations',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final fixture = await _oceanPearlFixture();
+    addTearDown(fixture.controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.light,
+          colorSchemeSeed: const Color(0xFF247BD1),
+          scaffoldBackgroundColor: const Color(0xFFEEF6FF),
+        ),
+        home: KitchenShell(controller: fixture.controller),
+      ),
+    );
+    await tester.pump();
+
+    for (final destination in const [
+      ('Boards', Icons.view_list_outlined),
+      ('New', Icons.add_circle_outline),
+      ('Settings', Icons.tune_outlined),
+      ('Home', Icons.home_outlined),
+    ]) {
+      await tester.tap(find.byIcon(destination.$2));
+      await tester.pump();
+      if (destination.$1 == 'Home') {
+        expect(find.text('Kitchen Prep Board'), findsOneWidget);
+      } else {
+        expect(find.text(destination.$1), findsWidgets);
+      }
+      expect(tester.takeException(), isNull);
+    }
   });
 }
