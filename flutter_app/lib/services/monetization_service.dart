@@ -5,6 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
+class StoreProduct {
+  const StoreProduct({required this.price});
+
+  final String price;
+}
+
 class MonetizationService extends ChangeNotifier {
   static const _configuredProductId = String.fromEnvironment('REMOVE_ADS_PRODUCT_ID');
   static const _configuredBannerId = String.fromEnvironment('BANNER_AD_UNIT_ID');
@@ -12,7 +18,8 @@ class MonetizationService extends ChangeNotifier {
 
   InAppPurchase? _iap;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
-  ProductDetails? product;
+  ProductDetails? _productDetails;
+  StoreProduct? product;
   bool removeAds = false;
   bool canRequestAds = false;
   bool privacyOptionsRequired = false;
@@ -23,7 +30,10 @@ class MonetizationService extends ChangeNotifier {
 
   String get productId => _configuredProductId;
 
+  bool get supportsAds => Platform.isAndroid;
+
   String? get bannerAdUnitId {
+    if (!supportsAds) return null;
     if (_useTestAds) {
       if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/9214589741';
       if (Platform.isIOS) return 'ca-app-pub-3940256099942544/2435281174';
@@ -33,6 +43,15 @@ class MonetizationService extends ChangeNotifier {
 
   Future<void> initialize() async {
     if (initialized) return;
+    // Kitchen Prep Board is a paid, ad-free app on iOS. The canonical shared
+    // source keeps Android's remove-ads subscription, while the signed iOS
+    // release workflow also strips both store/ad plugins from the bundle.
+    if (!supportsAds) {
+      removeAds = true;
+      initialized = true;
+      notifyListeners();
+      return;
+    }
     _purchaseSubscription = _store.purchaseStream.listen(
       _handlePurchases,
       onError: (_) {},
@@ -41,7 +60,8 @@ class MonetizationService extends ChangeNotifier {
     if (storeAvailable && productId.isNotEmpty) {
       final response = await _store.queryProductDetails({productId});
       if (response.productDetails.isNotEmpty) {
-        product = response.productDetails.first;
+        _productDetails = response.productDetails.first;
+        product = StoreProduct(price: _productDetails!.price);
       }
       // Reconcile from the store every launch. Entitlement is deliberately not
       // trusted from local storage, so an expired subscription cannot suppress ads.
@@ -53,6 +73,7 @@ class MonetizationService extends ChangeNotifier {
   }
 
   Future<void> refreshConsent() async {
+    if (!supportsAds) return;
     final completer = Completer<void>();
     ConsentInformation.instance.requestConsentInfoUpdate(
       ConsentRequestParameters(),
@@ -83,6 +104,7 @@ class MonetizationService extends ChangeNotifier {
   }
 
   Future<void> showPrivacyOptions() async {
+    if (!supportsAds) return;
     final completer = Completer<void>();
     ConsentForm.showPrivacyOptionsForm((_) {
       if (!completer.isCompleted) completer.complete();
@@ -93,7 +115,7 @@ class MonetizationService extends ChangeNotifier {
   }
 
   Future<void> buyRemoveAds() async {
-    final details = product;
+    final details = _productDetails;
     if (!storeAvailable || details == null) return;
     await _store.buyNonConsumable(
       purchaseParam: PurchaseParam(productDetails: details),

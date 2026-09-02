@@ -3,12 +3,12 @@
   "platforms": ["android", "ios"],
   "status": "LATEST",
   "version": "2.0.0",
-  "sourceRevision": "2026-08-30.1",
-  "publishedDate": "2026-08-30",
+  "sourceRevision": "2026-09-02.1",
+  "publishedDate": "2026-09-02",
   "sourceLayout": "flutter_app",
   "template": "Very Good CLI",
   "canonicalEntrypoint": "flutter_app/lib/main.dart",
   "supportedLanguages": 10,
   "supportedLocales": 11,
-  "note": "The reviewed cross-platform Flutter source is visible and canonical. The legacy Compose and SwiftUI presentation packages are retained only as history."
+  "note": "The reviewed Flutter source is canonical. Android keeps its ad-supported remove-ads model; the paid iOS release preparation removes advertising and in-app purchase dependencies before compilation."
 }

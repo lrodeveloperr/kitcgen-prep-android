@@ -1,0 +1,60 @@
+name: Validate paid ad-free iOS release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - flutter_app/**
+      - store/app-store/**
+      - .github/workflows/ios-release-validation.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kitchen-ios-release-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+      - name: Prepare paid ad-free iOS source
+        working-directory: flutter_app
+        run: bash tool/prepare_ios_ad_free.sh
+      - name: Resolve packages and pods
+        working-directory: flutter_app
+        run: |
+          flutter pub get
+          cd ios
+          pod install --repo-update
+      - name: Analyze and test
+        working-directory: flutter_app
+        run: |
+          flutter analyze --no-fatal-infos
+          flutter test
+      - name: Compile release without signing
+        working-directory: flutter_app
+        run: >-
+          flutter build ios --release --no-codesign --flavor production
+          --target lib/main.dart --build-name 2.0.0 --build-number 200
+      - name: Verify the iOS product contract
+        working-directory: flutter_app
+        shell: bash
+        run: |
+          set -euo pipefail
+          app='build/ios/iphoneos/Runner.app'
+          test -d "$app"
+          [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")" == 'studio.gooduse.kitchenprep' ]]
+          test -f "$app/PrivacyInfo.xcprivacy"
+          ! find "$app" -iname '*GoogleMobileAds*' -o -iname '*StoreKit*' | grep -q .
+          ! strings "$app/Runner" | grep -Eq 'GADApplicationIdentifier|google_mobile_ads|remove_ads_monthly'
+          plutil -lint ../store/app-store/en-US.json

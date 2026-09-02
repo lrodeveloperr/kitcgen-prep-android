@@ -1,0 +1,12 @@
+{
+  "name": "Kitchen Prep Board",
+  "subtitle": "Prep tasks, timed together",
+  "promotionalText": "See what to do now, what comes next, and when each prep task should start. No account, cloud sync, recipe scraping, or advertising.",
+  "description": "Kitchen Prep Board turns a list of kitchen tasks into a clear, timed station board. See what to do now, what comes next, what is waiting, and when each task is expected to finish.\n\nBUILD A BOARD FAST\n• Start with common kitchen items or add your own\n• Paste a task list instead of typing each step\n• Reuse saved templates for repeat prep\n• Choose Home mode or Station mode\n\nKEEP PREP MOVING\n• Run several timers from one board\n• Set task order and dependencies\n• Track limited resources and capacity\n• Pause new work without losing active timers\n• Keep the screen awake while you work\n• Receive optional local timer alerts\n\nFINISH TOGETHER\n• Arrange tasks around a target ready time\n• See Now, Waiting, Next, and Done at a glance\n• Review expected finish times before starting\n• Record made, used, waste, and handoff quantities\n\nPRIVATE BY DESIGN\nKitchen Prep Board works offline. Your boards and settings stay on your device. There is no account, cloud sync, analytics, or advertising in the iOS app.\n\nKitchen Prep Board is an organizational aid, not food-safety guidance. Follow applicable food-safety rules and your own professional judgment.\n\nTerms of Use: https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo/terms/\nPrivacy Policy: https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo/privacy/",
+  "keywords": "kitchen,prep,timer,meal planning,cooking,station,mise en place,checklist,workflow",
+  "supportUrl": "https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo/support/",
+  "marketingUrl": "https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo/",
+  "privacyPolicyUrl": "https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo/privacy/",
+  "termsUrl": "https://lrodeveloperr.github.io/kitchen-prep-board-policies-repo/terms/",
+  "whatsNew": "First iOS release. Build timed prep boards, coordinate task dependencies and resources, run local timer alerts, and keep all app data on your device."
+}

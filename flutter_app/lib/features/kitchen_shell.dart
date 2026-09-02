@@ -1,14 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:kitchen_prep_board/application/kitchen_controller.dart';
 import 'package:kitchen_prep_board/catalogue/kitchen_catalogue.dart';
 import 'package:kitchen_prep_board/domain/kitchen_models.dart';
 import 'package:kitchen_prep_board/domain/scheduling_engine.dart';
 import 'package:kitchen_prep_board/domain/timer_logic.dart';
+import 'package:kitchen_prep_board/features/banner_slot.dart';
 import 'package:kitchen_prep_board/l10n/kitchen_strings.dart';
-import 'package:kitchen_prep_board/services/monetization_service.dart';
 
 KitchenStrings _s(BuildContext context) => KitchenStrings(Localizations.localeOf(context));
 
@@ -117,76 +116,6 @@ class _KitchenShellState extends State<KitchenShell> {
           ),
         );
       },
-    );
-  }
-}
-
-class BannerSlot extends StatefulWidget {
-  const BannerSlot({required this.service, super.key});
-  final MonetizationService service;
-
-  @override
-  State<BannerSlot> createState() => _BannerSlotState();
-}
-
-class _BannerSlotState extends State<BannerSlot> {
-  BannerAd? ad;
-  bool loaded = false;
-  int lastWidth = 0;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final width = math.min(MediaQuery.sizeOf(context).width.floor(), 1024);
-    if (width != lastWidth) {
-      lastWidth = width;
-      _load(width);
-    }
-  }
-
-  Future<void> _load(int width) async {
-    final unit = widget.service.bannerAdUnitId;
-    final allowed = widget.service.canRequestAds && !widget.service.removeAds;
-    if (!allowed || unit == null) return;
-    final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width);
-    if (!mounted || size == null) return;
-    await ad?.dispose();
-    final next = BannerAd(
-      adUnitId: unit,
-      request: const AdRequest(nonPersonalizedAds: true),
-      size: size,
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          if (mounted) setState(() => loaded = true);
-        },
-        onAdFailedToLoad: (failed, _) {
-          failed.dispose();
-          if (mounted) setState(() => loaded = false);
-        },
-      ),
-    );
-    ad = next;
-    loaded = false;
-    await next.load();
-  }
-
-  @override
-  void dispose() {
-    ad?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final current = ad;
-    if (!loaded || current == null) {
-      final reserved = MediaQuery.sizeOf(context).width >= 600 ? 90.0 : 60.0;
-      return SizedBox(height: reserved);
-    }
-    return SizedBox(
-      width: current.size.width.toDouble(),
-      height: current.size.height.toDouble(),
-      child: AdWidget(ad: current),
     );
   }
 }
