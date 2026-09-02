@@ -41,27 +41,20 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
     return ListenableBuilder(
       listenable: Listenable.merge([controller, controller.monetization]),
       builder: (context, _) {
-        const forceIOSSkin = bool.fromEnvironment('FORCE_IOS_SKIN');
-        final useIOSWorkbench = forceIOSSkin ||
-            defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.macOS;
         final colors = ColorScheme.fromSeed(
-          seedColor: const Color(0xFF315D4B),
+          seedColor: const Color(0xFFD85B00),
           brightness: Brightness.light,
-          surface: useIOSWorkbench
-              ? const Color(0xFFF7F3E8)
-              : const Color(0xFFF8FAF7),
+          surface: const Color(0xFFFFFEFA),
         ).copyWith(
-          primary: const Color(0xFF315D4B),
-          onPrimary: const Color(0xFFFFFBF2),
-          secondary: const Color(0xFFE6843D),
-          onSecondary: const Color(0xFF231F1A),
-          surface: useIOSWorkbench
-              ? const Color(0xFFF7F3E8)
-              : const Color(0xFFF8FAF7),
-          onSurface: const Color(0xFF1F2B26),
-          outline: const Color(0xFFB8C1B8),
-          outlineVariant: const Color(0xFFDCE2D8),
+          primary: const Color(0xFFD85B00),
+          onPrimary: const Color(0xFFFFFFFF),
+          secondary: const Color(0xFF456F85),
+          onSecondary: const Color(0xFFFFFFFF),
+          tertiary: const Color(0xFF687A4E),
+          surface: const Color(0xFFFFFEFA),
+          onSurface: const Color(0xFF20262B),
+          outline: const Color(0xFFAAA59D),
+          outlineVariant: const Color(0xFFD8D3CA),
         );
         return MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -88,55 +81,37 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
             }
             return const Locale('en');
           },
-          theme: !useIOSWorkbench
-              ? ThemeData(
-                  useMaterial3: true,
-                  brightness: Brightness.light,
-                  colorSchemeSeed: const Color(0xFF496554),
-                  scaffoldBackgroundColor: const Color(0xFFF8FAF7),
-                  cardTheme: const CardThemeData(margin: EdgeInsets.zero),
-                  inputDecorationTheme: const InputDecorationTheme(
-                    border: OutlineInputBorder(),
-                  ),
-                )
-              : ThemeData(
+          theme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.light,
-            platform: useIOSWorkbench ? TargetPlatform.iOS : defaultTargetPlatform,
+            platform: defaultTargetPlatform,
             colorScheme: colors,
-            scaffoldBackgroundColor: colors.surface,
+            scaffoldBackgroundColor: const Color(0xFFF7F3EA),
+            splashFactory: InkSparkle.splashFactory,
             appBarTheme: AppBarTheme(
               elevation: 0,
               scrolledUnderElevation: 0,
               centerTitle: false,
-              backgroundColor: colors.surface,
+              backgroundColor: const Color(0xFFFFFEFA),
               foregroundColor: colors.onSurface,
+              surfaceTintColor: Colors.transparent,
             ),
             cardTheme: CardThemeData(
               margin: EdgeInsets.zero,
-              elevation: useIOSWorkbench ? 2.5 : 0,
-              shadowColor: const Color(0x26182B24),
-              color: useIOSWorkbench
-                  ? const Color(0xFFFFFEFA)
-                  : colors.surfaceContainerLow,
+              elevation: 0,
+              shadowColor: const Color(0x241F2529),
+              color: const Color(0xFFFFFEFA),
+              surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(useIOSWorkbench ? 18 : 12),
-                side: BorderSide(
-                  color: useIOSWorkbench
-                      ? const Color(0xFFE1E5DD)
-                      : colors.outlineVariant,
-                ),
+                borderRadius: BorderRadius.circular(18),
+                side: const BorderSide(color: Color(0xFFD8D3CA)),
               ),
             ),
             navigationBarTheme: NavigationBarThemeData(
-              height: useIOSWorkbench ? 62 : 80,
+              height: 68,
               elevation: 0,
-              backgroundColor: useIOSWorkbench
-                  ? const Color(0xFFFFFCF5)
-                  : colors.surface,
-              indicatorColor: useIOSWorkbench
-                  ? const Color(0xFFDDE9E1)
-                  : colors.secondaryContainer,
+              backgroundColor: const Color(0xFFFFFEFA),
+              indicatorColor: const Color(0xFFFFE9D6),
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 return TextStyle(
                   fontSize: 11,
@@ -145,15 +120,34 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
                       : FontWeight.w500,
                   color: states.contains(WidgetState.selected)
                       ? colors.primary
-                      : const Color(0xFF65706A),
+                      : const Color(0xFF636A6E),
                 );
               }),
+            ),
+            navigationRailTheme: const NavigationRailThemeData(
+              backgroundColor: Color(0xFFFFFEFA),
+              indicatorColor: Color(0xFFFFE9D6),
+              selectedIconTheme: IconThemeData(color: Color(0xFFD85B00)),
+              selectedLabelTextStyle: TextStyle(
+                color: Color(0xFFD85B00),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            listTileTheme: const ListTileThemeData(
+              iconColor: Color(0xFF456F85),
+              textColor: Color(0xFF20262B),
+              minVerticalPadding: 12,
+              contentPadding: EdgeInsets.symmetric(horizontal: 14),
+            ),
+            dividerTheme: const DividerThemeData(
+              color: Color(0xFFD8D3CA),
+              thickness: 1,
             ),
             filledButtonTheme: FilledButtonThemeData(
               style: FilledButton.styleFrom(
                 minimumSize: const Size(44, 50),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 textStyle: const TextStyle(fontWeight: FontWeight.w700),
               ),
@@ -162,26 +156,30 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(44, 48),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
             inputDecorationTheme: InputDecorationTheme(
-              filled: useIOSWorkbench,
-              fillColor: useIOSWorkbench ? const Color(0xFFFFFCF5) : null,
+              filled: true,
+              fillColor: const Color(0xFFFFFEFA),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: colors.outlineVariant),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: colors.outlineVariant),
               ),
             ),
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: <TargetPlatform, PageTransitionsBuilder>{
+                TargetPlatform.android: ZoomPageTransitionsBuilder(),
+                TargetPlatform.fuchsia: ZoomPageTransitionsBuilder(),
                 TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.linux: ZoomPageTransitionsBuilder(),
                 TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.windows: ZoomPageTransitionsBuilder(),
               },
             ),
           ),
