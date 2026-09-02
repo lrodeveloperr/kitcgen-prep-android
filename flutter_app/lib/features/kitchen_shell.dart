@@ -11,21 +11,95 @@ import 'package:kitchen_prep_board/l10n/kitchen_strings.dart';
 
 KitchenStrings _s(BuildContext context) => KitchenStrings(Localizations.localeOf(context));
 
-bool _usesCalmWorkbench(BuildContext context) =>
-    const bool.fromEnvironment('FORCE_IOS_SKIN') ||
-    Theme.of(context).platform == TargetPlatform.iOS ||
-    Theme.of(context).platform == TargetPlatform.macOS;
+bool _usesCommandRail(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.light;
 
 abstract final class _WorkbenchColors {
-  static const sage = Color(0xFF315D4B);
-  static const sageSoft = Color(0xFFDDE9E1);
   static const paper = Color(0xFFFFFEFA);
-  static const charcoal = Color(0xFF17231F);
-  static const orange = Color(0xFFE6843D);
-  static const orangeSoft = Color(0xFFFFE5D2);
-  static const line = Color(0xFFDCE1D9);
-  static const muted = Color(0xFF65706A);
-  static const shadow = Color(0x24182B24);
+  static const charcoal = Color(0xFF20262B);
+  static const orange = Color(0xFFD85B00);
+  static const orangeDeep = Color(0xFFB94B00);
+  static const orangeSoft = Color(0xFFFFE9D6);
+  static const blue = Color(0xFF456F85);
+  static const olive = Color(0xFF687A4E);
+  static const oliveSoft = Color(0xFFEAF0E3);
+  static const line = Color(0xFFD8D3CA);
+  static const muted = Color(0xFF636A6E);
+  static const shadow = Color(0x241F2529);
+}
+
+IconData _categoryIcon(GroceryCategory category) => switch (category) {
+      GroceryCategory.produce => Icons.eco_outlined,
+      GroceryCategory.meatPoultry => Icons.outdoor_grill_outlined,
+      GroceryCategory.seafood => Icons.set_meal_outlined,
+      GroceryCategory.dairyEggs => Icons.egg_alt_outlined,
+      GroceryCategory.bakeryGrains => Icons.rice_bowl_outlined,
+      GroceryCategory.pantry => Icons.shelves,
+      GroceryCategory.frozen => Icons.ac_unit_rounded,
+      GroceryCategory.beverages => Icons.local_drink_outlined,
+      GroceryCategory.herbsSpices => Icons.grass_outlined,
+      GroceryCategory.other => Icons.restaurant_menu_rounded,
+    };
+
+IconData _taskProcessIcon(KitchenTask task) {
+  final name = task.name.toLowerCase();
+  bool hasAny(Iterable<String> terms) => terms.any(name.contains);
+
+  if (hasAny(const [
+    'wash', 'rinse', 'lavar', 'enjuag', 'rincer', 'laver', 'waschen',
+    'spülen', 'lavare', 'sciacqu', 'غسل', 'شطف', '洗', 'すす', '씻',
+  ])) {
+    return Icons.water_drop_outlined;
+  }
+  if (hasAny(const [
+    'chop', 'slice', 'dice', 'mince', 'cut', 'picar', 'cortar', 'reban',
+    'couper', 'hach', 'éminc', 'schneid', 'hack', 'tagli', 'trit',
+    'قطع', 'فرم', '切', '刻', '썰', '다지',
+  ])) {
+    return Icons.restaurant_rounded;
+  }
+  if (hasAny(const [
+    'boil', 'simmer', 'cook', 'heat', 'warm', 'herv', 'cocer', 'cocinar',
+    'ferver', 'cozin', 'bouillir', 'mijot', 'cuire', 'koch', 'erhitz',
+    'boll', 'cuoc', 'غلي', 'طبخ', 'سخن', '煮', '加熱', '끓', '익히',
+  ])) {
+    return Icons.soup_kitchen_outlined;
+  }
+  if (hasAny(const [
+    'bake', 'roast', 'grill', 'fry', 'horne', 'asar', 'freír', 'assar',
+    'frit', 'rôt', 'back', 'brat', 'forn', 'frig', 'خبز', 'شوي', 'قلي',
+    '焼', '튀', '굽',
+  ])) {
+    return Icons.outdoor_grill_outlined;
+  }
+  if (hasAny(const [
+    'mix', 'stir', 'whisk', 'blend', 'mezcl', 'remov', 'bater', 'mistur',
+    'mélang', 'fouett', 'rühr', 'misch', 'mescol', 'sbatt', 'خلط', 'مزج',
+    '混', '섞', '젓',
+  ])) {
+    return Icons.blender_outlined;
+  }
+  if (hasAny(const [
+    'wait', 'rest', 'cool', 'marinat', 'esper', 'repos', 'enfri', 'aguard',
+    'descans', 'refroid', 'attendre', 'ruh', 'abkühl', 'riposa', 'raffredd',
+    'انتظر', 'راحة', 'برد', '待', '休', '식히', '기다',
+  ])) {
+    return Icons.hourglass_top_rounded;
+  }
+  if (hasAny(const [
+    'serve', 'plate', 'servir', 'emplat', 'dresser', 'anricht', 'impiatt',
+    'قدم', 'تقديم', '盛', '내기',
+  ])) {
+    return Icons.dinner_dining_outlined;
+  }
+
+  final sourceId = task.sourceItemId;
+  if (sourceId != null) {
+    for (final item in kitchenCatalogue) {
+      if (item.id == sourceId) return _categoryIcon(item.category);
+    }
+  }
+  return Icons.checklist_rounded;
 }
 
 Future<bool> _runKitchenAction(
@@ -106,7 +180,7 @@ class _KitchenShellState extends State<KitchenShell> {
         if (!wide) {
           return Scaffold(
             body: content,
-            bottomNavigationBar: NavigationBar(
+            bottomNavigationBar: _CommandRailNavigationBar(
               selectedIndex: index,
               onDestinationSelected: (value) => setState(() => index = value),
               destinations: destinations,
@@ -137,6 +211,135 @@ class _KitchenShellState extends State<KitchenShell> {
   }
 }
 
+class _CommandRailNavigationBar extends StatelessWidget {
+  const _CommandRailNavigationBar({
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    required this.destinations,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+  final List<NavigationDestination> destinations;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    final direction = Directionality.of(context);
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: _WorkbenchColors.paper,
+        border: Border(top: BorderSide(color: _WorkbenchColors.line)),
+      ),
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.35,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SizedBox(
+            height: 68,
+            child: Row(
+              textDirection: direction,
+              children: [
+                for (var i = 0; i < destinations.length; i++)
+                  Expanded(
+                    child: _CommandDestination(
+                      destination: destinations[i],
+                      selected: selectedIndex == i,
+                      emphasized: i == 2,
+                      onTap: () => onDestinationSelected(i),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CommandDestination extends StatelessWidget {
+  const _CommandDestination({
+    required this.destination,
+    required this.selected,
+    required this.emphasized,
+    required this.onTap,
+  });
+
+  final NavigationDestination destination;
+  final bool selected;
+  final bool emphasized;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? _WorkbenchColors.orange : _WorkbenchColors.charcoal;
+    final icon = (selected ? destination.selectedIcon : destination.icon) ??
+        const SizedBox.shrink();
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: destination.label,
+      child: InkWell(
+        onTap: onTap,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              height: 3,
+              width: selected && !emphasized ? 46 : 0,
+              decoration: const BoxDecoration(
+                color: _WorkbenchColors.orange,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(4)),
+              ),
+            ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (emphasized)
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: const BoxDecoration(
+                        color: _WorkbenchColors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconTheme(
+                        data: const IconThemeData(color: Colors.white, size: 27),
+                        child: icon,
+                      ),
+                    )
+                  else
+                    IconTheme(
+                      data: IconThemeData(color: color, size: 25),
+                      child: icon,
+                    ),
+                  if (!emphasized) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      destination.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      softWrap: false,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 11,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class PageFrame extends StatelessWidget {
   const PageFrame({required this.title, required this.child, this.action, super.key});
   final String title;
@@ -145,33 +348,11 @@ class PageFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!_usesCalmWorkbench(context)) {
-      return SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 980),
-            child: CustomScrollView(
-              slivers: [
-                SliverAppBar.large(
-                  title: Text(title),
-                  actions: action == null ? null : [action!],
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  sliver: SliverToBoxAdapter(child: child),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     final media = MediaQuery.of(context);
     final compactHeight = media.size.height <= 700;
     final compactWidth = media.size.width <= 360;
-    final horizontal = compactWidth ? 14.0 : 18.0;
+    final tablet = media.size.width >= 720;
+    final horizontal = compactWidth ? 14.0 : tablet ? 32.0 : 18.0;
     final titleStyle = (compactHeight
             ? Theme.of(context).textTheme.titleLarge
             : Theme.of(context).textTheme.headlineSmall)
@@ -185,35 +366,56 @@ class PageFrame extends StatelessWidget {
       bottom: false,
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 980),
+          constraints: const BoxConstraints(maxWidth: 1180),
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    horizontal,
-                    compactHeight ? 8 : 12,
-                    horizontal,
-                    compactHeight ? 10 : 14,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: titleStyle,
-                        ),
+                child: DecoratedBox(
+                  decoration: const BoxDecoration(
+                    color: _WorkbenchColors.paper,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: _WorkbenchColors.orange,
+                        width: 3,
                       ),
-                      if (action != null) ...[
-                        const SizedBox(width: 10),
-                        action!,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      horizontal,
+                      compactHeight ? 7 : 10,
+                      horizontal,
+                      compactHeight ? 7 : 10,
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: Image.asset(
+                            'kitchen_prep_mark.png',
+                            width: compactHeight ? 38 : 44,
+                            height: compactHeight ? 38 : 44,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: titleStyle,
+                          ),
+                        ),
+                        if (action != null) ...[
+                          const SizedBox(width: 10),
+                          action!,
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -239,9 +441,9 @@ class HomePage extends StatelessWidget {
     final s = _s(context);
     final board = controller.activeBoard;
     final draft = controller.recoverableDraft;
-    final calm = _usesCalmWorkbench(context);
+    final calm = _usesCommandRail(context);
     return PageFrame(
-      title: s.t('home'),
+      title: s.t('appName'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -292,7 +494,7 @@ class HomePage extends StatelessWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFFFFFEFA), Color(0xFFF0F5F1)],
+                    colors: [Color(0xFFFFFEFA), Color(0xFFFFF7EF)],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: _WorkbenchColors.line),
@@ -392,14 +594,14 @@ class ActiveSummary extends StatelessWidget {
     final now = running > 0 ? running : (ready > 0 ? 1 : 0);
     final next =
         math.max(ready - (running == 0 && ready > 0 ? 1 : 0), 0).toInt();
-    if (_usesCalmWorkbench(context)) {
+    if (_usesCommandRail(context)) {
       return Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFFFEFA), Color(0xFFF0F5F1)],
+            colors: [Color(0xFFFFFEFA), Color(0xFFFFF7EF)],
           ),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: _WorkbenchColors.line),
@@ -455,7 +657,7 @@ class ActiveSummary extends StatelessWidget {
                       child: _LaneMetric(
                         label: s.t('next'),
                         value: next,
-                        color: _WorkbenchColors.sage,
+                        color: _WorkbenchColors.blue,
                       ),
                     ),
                     SizedBox(
@@ -471,7 +673,7 @@ class ActiveSummary extends StatelessWidget {
                       child: _LaneMetric(
                         label: s.t('done'),
                         value: board.doneCount,
-                        color: const Color(0xFF6E8C65),
+                        color: _WorkbenchColors.olive,
                       ),
                     ),
                   ],
@@ -943,20 +1145,26 @@ class _NewBoardPageState extends State<NewBoardPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Material(
-                color: _usesCalmWorkbench(context)
+                color: _usesCommandRail(context)
                     ? (selected.contains(item.id)
-                        ? _WorkbenchColors.sageSoft.withValues(alpha: 0.78)
+                        ? _WorkbenchColors.orangeSoft
                         : _WorkbenchColors.paper)
                     : Colors.transparent,
-                elevation: _usesCalmWorkbench(context) ? 1.0 : 0,
+                elevation: _usesCommandRail(context) ? 1.0 : 0,
                 shadowColor: _WorkbenchColors.shadow,
                 borderRadius: BorderRadius.circular(16),
                 child: CheckboxListTile(
                   value: selected.contains(item.id),
+                  secondary: Icon(
+                    _categoryIcon(item.category),
+                    color: selected.contains(item.id)
+                        ? _WorkbenchColors.orange
+                        : _WorkbenchColors.blue,
+                  ),
                   title: Text(
                     item.display(locale),
                     style: TextStyle(
-                      fontWeight: _usesCalmWorkbench(context)
+                      fontWeight: _usesCommandRail(context)
                           ? FontWeight.w600
                           : FontWeight.normal,
                     ),
@@ -1889,8 +2097,8 @@ class LiveBoardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = _s(context);
-    if (_usesCalmWorkbench(context)) {
-      return _buildCalmWorkbench(context, s);
+    if (_usesCommandRail(context)) {
+      return _buildCommandRail(context, s);
     }
     return Scaffold(
       appBar: AppBar(title: Text(board.title)),
@@ -2064,14 +2272,80 @@ class LiveBoardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCalmWorkbench(BuildContext context, KitchenStrings s) {
+  Widget _buildCommandRail(BuildContext context, KitchenStrings s) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          board.title,
-          style: const TextStyle(fontWeight: FontWeight.w700),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'kitchen_prep_mark.png',
+                width: 38,
+                height: 38,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                board.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _WorkbenchColors.charcoal,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.35,
+                ),
+              ),
+            ),
+          ],
         ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(3),
+          child: SizedBox(
+            height: 3,
+            width: double.infinity,
+            child: ColoredBox(color: _WorkbenchColors.orange),
+          ),
+        ),
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: s.t('more'),
+            onSelected: (value) {
+              if (value == 'handoff') {
+                _handoff(context, s);
+              } else if (value == 'finish') {
+                _finishCommandRailBoard(context, s);
+              }
+            },
+            itemBuilder: (context) => [
+              if (board.unfinishedCount > 0)
+                PopupMenuItem(
+                  value: 'handoff',
+                  child: Text(s.t('handoff')),
+                ),
+              PopupMenuItem(
+                value: 'finish',
+                child: Text(
+                  board.unfinishedCount == 0
+                      ? s.t('closeCompleted')
+                      : s.t('closeUnfinished'),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+      bottomNavigationBar: !controller.monetization.removeAds &&
+              controller.monetization.canRequestAds &&
+              controller.monetization.bannerAdUnitId != null
+          ? SafeArea(
+              top: false,
+              child: BannerSlot(service: controller.monetization),
+            )
+          : null,
       body: ListenableBuilder(
         listenable: controller,
         builder: (context, _) {
@@ -2082,83 +2356,70 @@ class LiveBoardPage extends StatelessWidget {
               .where((task) => task.status == TaskStatus.ready)
               .firstOrNull;
           final focus = running ?? ready;
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                children: [
-                  ActiveSummary(board: board),
-                  const SizedBox(height: 12),
-                  if (focus != null)
-                    _ActiveTaskHero(
-                      controller: controller,
-                      board: board,
-                      task: focus,
-                    )
-                  else
-                    _AllClearPanel(board: board),
-                  if (controller.expiredTaskIds.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _WorkbenchColors.orangeSoft,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.notifications_active_rounded,
-                            color: _WorkbenchColors.orange,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              s.t('attention'),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: _WorkbenchColors.charcoal,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            '${controller.expiredTaskIds.length}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: _WorkbenchColors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  Text(
-                    s.t('tasks'),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+          final attention = controller.expiredTaskIds.isEmpty
+              ? null
+              : Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
                   ),
-                  const SizedBox(height: 10),
-                  _TaskLanes(
-                    controller: controller,
-                    board: board,
-                    focusTaskId: focus?.id,
+                  decoration: BoxDecoration(
+                    color: _WorkbenchColors.orangeSoft,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _WorkbenchColors.orange),
                   ),
-                  if (board.mode == BoardMode.station &&
-                      board.stationItems.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      s.t('stationMode'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.notifications_active_rounded,
+                        color: _WorkbenchColors.orange,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          s.t('attention'),
+                          style: const TextStyle(
                             fontWeight: FontWeight.w700,
+                            color: _WorkbenchColors.charcoal,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${controller.expiredTaskIds.length}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: _WorkbenchColors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+          final hero = focus == null
+              ? _AllClearPanel(board: board)
+              : _ActiveTaskHero(
+                  controller: controller,
+                  board: board,
+                  task: focus,
+                );
+          final lanes = _TaskLanes(
+            controller: controller,
+            board: board,
+            focusTaskId: focus?.id,
+          );
+          final station = board.mode == BoardMode.station &&
+                  board.stationItems.isNotEmpty
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      s.t('stationMode').toUpperCase(),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: _WorkbenchColors.blue,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
                           ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     for (final item in board.stationItems)
                       LiveStationRow(
                         controller: controller,
@@ -2166,65 +2427,76 @@ class LiveBoardPage extends StatelessWidget {
                         item: item,
                       ),
                   ],
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            if (board.status == BoardStatus.paused) {
-                              await _runKitchenAction(
-                                context,
-                                () => controller.resumeBoard(board),
-                              );
-                            } else {
-                              final ok = await _confirm(
-                                context,
-                                s.t('timersContinue'),
-                                s,
-                                confirmLabel: s.t('pauseNewTasks'),
-                              );
-                              if (ok && context.mounted) {
-                                await _runKitchenAction(
-                                  context,
-                                  () => controller.pauseBoard(board),
-                                );
-                              }
-                            }
-                          },
-                          icon: Icon(
-                            board.status == BoardStatus.paused
-                                ? Icons.play_arrow_rounded
-                                : Icons.pause_rounded,
-                          ),
-                          label: Text(
-                            board.status == BoardStatus.paused
-                                ? s.t('resume')
-                                : s.t('pause'),
+                )
+              : null;
+          final controls = _BoardControlPanel(
+            board: board,
+            pauseOrResume: () => _pauseOrResumeBoard(context, s),
+            handoff: () => _handoff(context, s),
+            finish: () => _finishCommandRailBoard(context, s),
+          );
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1180),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 820;
+                  if (wide) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: ListView(
+                            padding: const EdgeInsets.fromLTRB(24, 20, 12, 28),
+                            children: [
+                              hero,
+                              if (attention != null) ...[
+                                const SizedBox(height: 12),
+                                attention,
+                              ],
+                              const SizedBox(height: 16),
+                              controls,
+                            ],
                           ),
                         ),
-                      ),
-                      if (board.unfinishedCount > 0) ...[
-                        const SizedBox(width: 10),
-                        IconButton.outlined(
-                          tooltip: s.t('handoff'),
-                          onPressed: () => _handoff(context, s),
-                          icon: const Icon(Icons.sync_alt_rounded),
+                        const VerticalDivider(width: 1),
+                        Expanded(
+                          flex: 6,
+                          child: ListView(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 24, 28),
+                            children: [
+                              lanes,
+                              if (station != null) ...[
+                                const SizedBox(height: 24),
+                                station,
+                              ],
+                            ],
+                          ),
                         ),
                       ],
+                    );
+                  }
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+                    children: [
+                      hero,
+                      if (attention != null) ...[
+                        const SizedBox(height: 12),
+                        attention,
+                      ],
+                      const SizedBox(height: 20),
+                      lanes,
+                      if (station != null) ...[
+                        const SizedBox(height: 24),
+                        station,
+                      ],
+                      const SizedBox(height: 20),
+                      controls,
                     ],
-                  ),
-                  const SizedBox(height: 10),
-                  FilledButton.icon(
-                    onPressed: () => _finishCalmBoard(context, s),
-                    icon: const Icon(Icons.flag_outlined),
-                    label: Text(
-                      board.unfinishedCount == 0
-                          ? s.t('closeCompleted')
-                          : '${s.t('closeUnfinished')} (${board.unfinishedCount})',
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           );
@@ -2233,7 +2505,26 @@ class LiveBoardPage extends StatelessWidget {
     );
   }
 
-  Future<void> _finishCalmBoard(
+  Future<void> _pauseOrResumeBoard(
+    BuildContext context,
+    KitchenStrings s,
+  ) async {
+    if (board.status == BoardStatus.paused) {
+      await _runKitchenAction(context, () => controller.resumeBoard(board));
+      return;
+    }
+    final ok = await _confirm(
+      context,
+      s.t('timersContinue'),
+      s,
+      confirmLabel: s.t('pauseNewTasks'),
+    );
+    if (ok && context.mounted) {
+      await _runKitchenAction(context, () => controller.pauseBoard(board));
+    }
+  }
+
+  Future<void> _finishCommandRailBoard(
     BuildContext context,
     KitchenStrings s,
   ) async {
@@ -2323,6 +2614,72 @@ class LiveBoardPage extends StatelessWidget {
   }
 }
 
+class _BoardControlPanel extends StatelessWidget {
+  const _BoardControlPanel({
+    required this.board,
+    required this.pauseOrResume,
+    required this.handoff,
+    required this.finish,
+  });
+
+  final KitchenBoard board;
+  final VoidCallback pauseOrResume;
+  final VoidCallback handoff;
+  final VoidCallback finish;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _s(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: pauseOrResume,
+                icon: Icon(
+                  board.status == BoardStatus.paused
+                      ? Icons.play_arrow_rounded
+                      : Icons.pause_rounded,
+                ),
+                label: Text(
+                  board.status == BoardStatus.paused
+                      ? s.t('resume')
+                      : s.t('pause'),
+                ),
+              ),
+            ),
+            if (board.unfinishedCount > 0) ...[
+              const SizedBox(width: 10),
+              IconButton.outlined(
+                constraints: const BoxConstraints(minWidth: 50, minHeight: 50),
+                tooltip: s.t('handoff'),
+                onPressed: handoff,
+                icon: const Icon(Icons.sync_alt_rounded),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: _WorkbenchColors.charcoal,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: finish,
+          icon: const Icon(Icons.flag_outlined),
+          label: Text(
+            board.unfinishedCount == 0
+                ? s.t('closeCompleted')
+                : '${s.t('closeUnfinished')} (${board.unfinishedCount})',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 extension _FirstOrNull<T> on Iterable<T> {
   T? get firstOrNull {
     for (final item in this) return item;
@@ -2357,27 +2714,35 @@ class _ActiveTaskHero extends StatelessWidget {
         : s.t('now');
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
-        color: _WorkbenchColors.sage,
-        borderRadius: BorderRadius.circular(24),
+        color: _WorkbenchColors.paper,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _WorkbenchColors.line),
+        boxShadow: const [
+          BoxShadow(
+            color: _WorkbenchColors.shadow,
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              _StatusPill(
-                label: reading.expired ? s.t('attention') : s.t('now'),
-                color: reading.expired
-                    ? _WorkbenchColors.orange
-                    : _WorkbenchColors.sage,
-                background: reading.expired
-                    ? _WorkbenchColors.orangeSoft
-                    : _WorkbenchColors.sageSoft,
+              Text(
+                (reading.expired ? s.t('attention') : s.t('now')).toUpperCase(),
+                style: const TextStyle(
+                  color: _WorkbenchColors.orange,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
               ),
               const Spacer(),
               PopupMenuButton<String>(
-                iconColor: _WorkbenchColors.paper,
                 tooltip: s.t('more'),
                 onSelected: (value) => _moreAction(context, value, s),
                 itemBuilder: (context) => [
@@ -2388,125 +2753,137 @@ class _ActiveTaskHero extends StatelessWidget {
                         child: Text('+$minutes ${s.t('minutes')}'),
                       ),
                   if (board.tasks.indexOf(task) > 0)
-                    PopupMenuItem(
-                      value: 'top',
-                      child: Text(s.t('moveTop')),
-                    ),
+                    PopupMenuItem(value: 'top', child: Text(s.t('moveTop'))),
                   PopupMenuItem(value: 'skip', child: Text(s.t('skip'))),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 148,
-            height: 148,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox.expand(
-                  child: CircularProgressIndicator(
-                    value: task.deadlineEpochMs == null ? 0 : progress,
-                    strokeWidth: 8,
-                    strokeCap: StrokeCap.round,
-                    backgroundColor: const Color(0xFF527363),
-                    color: _WorkbenchColors.orange,
-                  ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: _WorkbenchColors.orangeSoft,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (task.deadlineEpochMs == null)
-                      const Icon(
-                        Icons.play_arrow_rounded,
-                        color: _WorkbenchColors.paper,
-                        size: 28,
+                child: Icon(
+                  _taskProcessIcon(task),
+                  color: _WorkbenchColors.orange,
+                  size: 31,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  task.name,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: _WorkbenchColors.charcoal,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.6,
                       ),
-                    Text(
-                      timerText,
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: _WorkbenchColors.paper,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -1.2,
-                          ),
-                    ),
-                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
-          Text(
-            task.name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: _WorkbenchColors.paper,
-                  fontWeight: FontWeight.w700,
-                ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              timerText,
+              style: TextStyle(
+                color: reading.expired
+                    ? _WorkbenchColors.orangeDeep
+                    : _WorkbenchColors.charcoal,
+                fontSize: task.deadlineEpochMs == null ? 50 : 76,
+                height: 0.95,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -3.2,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              minHeight: 5,
+              value: task.deadlineEpochMs == null ? 0 : progress,
+              backgroundColor: _WorkbenchColors.line,
+              color: _WorkbenchColors.orange,
+            ),
           ),
           if (task.note?.trim().isNotEmpty ?? false) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 10),
             Text(
               task.note!,
-              textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFFDCE8E1),
+                    color: _WorkbenchColors.muted,
                   ),
             ),
           ],
           const SizedBox(height: 18),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(58),
+              foregroundColor: Colors.white,
+              backgroundColor: _WorkbenchColors.orange,
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            onPressed: board.status == BoardStatus.paused && !isRunning
+                ? null
+                : () => isRunning
+                    ? _complete(context, s)
+                    : _runKitchenAction(
+                        context,
+                        () => pausedTimer
+                            ? controller.resumeTaskTimer(board, task, s)
+                            : controller.startTask(board, task, s),
+                      ),
+            icon: Icon(
+              isRunning ? Icons.check_circle_rounded : Icons.play_arrow_rounded,
+            ),
+            label: Text(
+              isRunning
+                  ? s.t('done')
+                  : pausedTimer
+                      ? s.t('resume')
+                      : s.t('start'),
+            ),
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
+              if (isRunning && task.deadlineEpochMs != null) ...[
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _runKitchenAction(
+                      context,
+                      () => controller.pauseTaskTimer(board, task),
+                    ),
+                    icon: const Icon(Icons.pause_rounded),
+                    label: Text(s.t('pause')),
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
               Expanded(
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    foregroundColor: _WorkbenchColors.charcoal,
-                    backgroundColor: _WorkbenchColors.paper,
-                  ),
-                  onPressed: board.status == BoardStatus.paused && !isRunning
-                      ? null
-                      : () => isRunning
-                          ? _complete(context, s)
-                          : _runKitchenAction(
-                              context,
-                              () => pausedTimer
-                                  ? controller.resumeTaskTimer(board, task, s)
-                                  : controller.startTask(board, task, s),
-                            ),
-                  icon: Icon(
-                    isRunning
-                        ? Icons.check_rounded
-                        : Icons.play_arrow_rounded,
-                  ),
-                  label: Text(
-                    isRunning
-                        ? s.t('done')
-                        : pausedTimer
-                            ? s.t('resume')
-                            : s.t('start'),
-                  ),
+                child: OutlinedButton.icon(
+                  onPressed: () => _showAdjust(context, s),
+                  icon: const Icon(Icons.tune_rounded),
+                  label: Text(s.t('adjust')),
                 ),
               ),
-              if (isRunning && task.deadlineEpochMs != null) ...[
-                const SizedBox(width: 10),
-                IconButton.filled(
-                  style: IconButton.styleFrom(
-                    foregroundColor: _WorkbenchColors.paper,
-                    backgroundColor: const Color(0xFF527363),
-                    minimumSize: const Size(50, 50),
-                  ),
-                  tooltip: s.t('pause'),
-                  onPressed: () => _runKitchenAction(
-                    context,
-                    () => controller.pauseTaskTimer(board, task),
-                  ),
-                  icon: const Icon(Icons.pause_rounded),
-                ),
-              ],
             ],
           ),
         ],
@@ -2532,6 +2909,42 @@ class _ActiveTaskHero extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showAdjust(BuildContext context, KitchenStrings s) async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (task.status == TaskStatus.running &&
+                task.deadlineEpochMs != null)
+              for (final minutes in const [1, 5, 10])
+                ListTile(
+                  leading: const Icon(Icons.add_alarm_rounded),
+                  title: Text('+$minutes ${s.t('minutes')}'),
+                  onTap: () => Navigator.pop(context, 'add_$minutes'),
+                ),
+            if (board.tasks.indexOf(task) > 0)
+              ListTile(
+                leading: const Icon(Icons.vertical_align_top_rounded),
+                title: Text(s.t('moveTop')),
+                onTap: () => Navigator.pop(context, 'top'),
+              ),
+            ListTile(
+              leading: const Icon(Icons.skip_next_rounded),
+              title: Text(s.t('skip')),
+              onTap: () => Navigator.pop(context, 'skip'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice != null && context.mounted) {
+      await _moreAction(context, choice, s);
+    }
   }
 
   Future<void> _moreAction(
@@ -2579,9 +2992,7 @@ class _ActiveTaskHero extends StatelessWidget {
   }
 }
 
-enum _TaskLane { now, next, waiting, done }
-
-class _TaskLanes extends StatefulWidget {
+class _TaskLanes extends StatelessWidget {
   const _TaskLanes({
     required this.controller,
     required this.board,
@@ -2593,139 +3004,137 @@ class _TaskLanes extends StatefulWidget {
   final String? focusTaskId;
 
   @override
-  State<_TaskLanes> createState() => _TaskLanesState();
-}
-
-class _TaskLanesState extends State<_TaskLanes> {
-  _TaskLane selected = _TaskLane.next;
-
-  @override
   Widget build(BuildContext context) {
     final s = _s(context);
-    final nowTasks = widget.board.tasks
-        .where((task) => task.status == TaskStatus.running)
+    final nowTasks = board.tasks
+        .where((task) =>
+            task.status == TaskStatus.running && task.id != focusTaskId)
         .toList();
-    final nextTasks = widget.board.tasks
-        .where((task) => task.status == TaskStatus.ready)
+    final nextTasks = board.tasks
+        .where((task) => task.status == TaskStatus.ready && task.id != focusTaskId)
         .toList();
-    final waitingTasks = widget.board.tasks
+    final waitingTasks = board.tasks
         .where((task) =>
             task.status == TaskStatus.waiting ||
             task.status == TaskStatus.blocked)
         .toList();
-    final doneTasks = widget.board.tasks.where((task) => task.isTerminal).toList();
-    final lanes = <_TaskLane, List<KitchenTask>>{
-      _TaskLane.now: nowTasks,
-      _TaskLane.next: nextTasks,
-      _TaskLane.waiting: waitingTasks,
-      _TaskLane.done: doneTasks,
-    };
-    final labels = <_TaskLane, String>{
-      _TaskLane.now: s.t('now'),
-      _TaskLane.next: s.t('next'),
-      _TaskLane.waiting: s.t('waiting'),
-      _TaskLane.done: s.t('done'),
-    };
-    final selectedTasks = lanes[selected]!
-        .where((task) => task.id != widget.focusTaskId)
-        .toList();
-
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFFEFA), Color(0xFFF3F7F4)],
+    final doneTasks = board.tasks.where((task) => task.isTerminal).toList();
+    final sections = <Widget>[
+      if (nowTasks.isNotEmpty)
+        _CommandLaneSection(
+          label: s.t('now'),
+          color: _WorkbenchColors.orange,
+          tasks: nowTasks,
+          controller: controller,
+          board: board,
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _WorkbenchColors.line),
-        boxShadow: const [
-          BoxShadow(
-            color: _WorkbenchColors.shadow,
-            blurRadius: 18,
-            offset: Offset(0, 7),
-          ),
-        ],
+      _CommandLaneSection(
+        label: s.t('next'),
+        color: _WorkbenchColors.blue,
+        tasks: nextTasks,
+        controller: controller,
+        board: board,
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              for (final lane in _TaskLane.values)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => setState(() => selected = lane),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 160),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 9,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selected == lane
-                              ? _WorkbenchColors.sageSoft
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              '${lanes[lane]!.length}',
-                              style: TextStyle(
-                                color: selected == lane
-                                    ? _WorkbenchColors.sage
-                                    : _WorkbenchColors.muted,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              labels[lane]!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: selected == lane
-                                    ? _WorkbenchColors.sage
-                                    : _WorkbenchColors.muted,
-                                fontWeight: selected == lane
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          if (selectedTasks.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Icon(
-                selected == _TaskLane.done
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.horizontal_rule_rounded,
-                color: _WorkbenchColors.muted,
+      _CommandLaneSection(
+        label: s.t('waiting'),
+        color: _WorkbenchColors.orangeDeep,
+        tasks: waitingTasks,
+        controller: controller,
+        board: board,
+      ),
+      _CommandLaneSection(
+        label: s.t('done'),
+        color: _WorkbenchColors.olive,
+        tasks: doneTasks,
+        controller: controller,
+        board: board,
+      ),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < sections.length; i++) ...[
+          if (i > 0) const SizedBox(height: 14),
+          sections[i],
+        ],
+      ],
+    );
+  }
+}
+
+class _CommandLaneSection extends StatelessWidget {
+  const _CommandLaneSection({
+    required this.label,
+    required this.color,
+    required this.tasks,
+    required this.controller,
+    required this.board,
+  });
+
+  final String label;
+  final Color color;
+  final List<KitchenTask> tasks;
+  final KitchenController controller;
+  final KitchenBoard board;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.8,
               ),
-            )
-          else ...[
-            const SizedBox(height: 8),
-            for (final task in selectedTasks)
-              TaskActionCard(
-                controller: widget.controller,
-                board: widget.board,
-                task: task,
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(8),
               ),
+              child: Text(
+                '${tasks.length}',
+                style: TextStyle(color: color, fontWeight: FontWeight.w800),
+              ),
+            ),
           ],
-        ],
-      ),
+        ),
+        const SizedBox(height: 7),
+        Container(
+          decoration: BoxDecoration(
+            color: _WorkbenchColors.paper,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _WorkbenchColors.line),
+          ),
+          child: tasks.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Icon(
+                    label == _s(context).t('done')
+                        ? Icons.check_circle_outline_rounded
+                        : Icons.horizontal_rule_rounded,
+                    color: _WorkbenchColors.muted,
+                  ),
+                )
+              : Column(
+                  children: [
+                    for (final task in tasks)
+                      TaskActionCard(
+                        controller: controller,
+                        board: board,
+                        task: task,
+                      ),
+                  ],
+                ),
+        ),
+      ],
     );
   }
 }
@@ -2741,8 +3150,8 @@ class _AllClearPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: _WorkbenchColors.sage,
-        borderRadius: BorderRadius.circular(24),
+        color: _WorkbenchColors.olive,
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
         children: [
@@ -2762,7 +3171,7 @@ class _AllClearPanel extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${board.doneCount} ${s.t('tasks')}',
-            style: const TextStyle(color: Color(0xFFDCE8E1)),
+            style: const TextStyle(color: _WorkbenchColors.oliveSoft),
           ),
         ],
       ),
@@ -2791,8 +3200,8 @@ class TaskActionCard extends StatelessWidget {
         .whereType<KitchenTask>()
         .map((item) => item.name)
         .join(', ');
-    if (_usesCalmWorkbench(context)) {
-      return _buildCalmTask(
+    if (_usesCommandRail(context)) {
+      return _buildCommandTask(
         context,
         s,
         reading,
@@ -2919,7 +3328,7 @@ class TaskActionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCalmTask(
+  Widget _buildCommandTask(
     BuildContext context,
     KitchenStrings s,
     TimerReading reading,
@@ -2928,12 +3337,12 @@ class TaskActionCard extends StatelessWidget {
   ) {
     final isRunning = task.status == TaskStatus.running;
     final statusColor = task.isTerminal
-        ? const Color(0xFF6E8C65)
+        ? _WorkbenchColors.olive
         : task.status == TaskStatus.blocked
             ? _WorkbenchColors.muted
             : isRunning
                 ? _WorkbenchColors.orange
-                : _WorkbenchColors.sage;
+                : _WorkbenchColors.blue;
     final detail = <String>[
       if (isRunning && task.deadlineEpochMs != null)
         reading.expired ? s.t('attention') : _duration(reading.remainingMs),
@@ -2948,10 +3357,10 @@ class TaskActionCard extends StatelessWidget {
         : task.durationSeconds! * 1000;
     final progress = totalMs <= 0
         ? 0.0
-        : (reading.remainingMs / totalMs).clamp(0.0, 1.0);
+        : (1 - reading.remainingMs / totalMs).clamp(0.0, 1.0).toDouble();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 12, 4, 12),
+      padding: const EdgeInsets.fromLTRB(10, 10, 2, 10),
       decoration: const BoxDecoration(
         border: Border(
           top: BorderSide(color: _WorkbenchColors.line),
@@ -2961,8 +3370,8 @@ class TaskActionCard extends StatelessWidget {
         children: [
           if (isRunning && task.deadlineEpochMs != null)
             SizedBox(
-              width: 34,
-              height: 34,
+              width: 44,
+              height: 44,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -2974,10 +3383,10 @@ class TaskActionCard extends StatelessWidget {
                       _WorkbenchColors.orange,
                     ),
                   ),
-                  const Center(
+                  Center(
                     child: Icon(
-                      Icons.timer_outlined,
-                      size: 15,
+                      _taskProcessIcon(task),
+                      size: 21,
                       color: _WorkbenchColors.orange,
                     ),
                   ),
@@ -2986,11 +3395,16 @@ class TaskActionCard extends StatelessWidget {
             )
           else
             Container(
-              width: 9,
-              height: 9,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                _taskProcessIcon(task),
                 color: statusColor,
-                shape: BoxShape.circle,
+                size: 23,
               ),
             ),
           const SizedBox(width: 12),
@@ -3055,7 +3469,7 @@ class TaskActionCard extends StatelessWidget {
                     : Icons.play_circle_outline_rounded,
                 color: isRunning
                     ? _WorkbenchColors.orange
-                    : _WorkbenchColors.sage,
+                    : _WorkbenchColors.blue,
               ),
             )
           else

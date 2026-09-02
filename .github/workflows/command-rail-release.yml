@@ -1,0 +1,55 @@
+name: Validate Command Rail Flutter skin
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - flutter_app/**
+      - .github/workflows/command-rail-release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: command-rail-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+      - name: Resolve packages
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Analyze
+        working-directory: flutter_app
+        run: flutter analyze --no-fatal-infos
+      - name: Unit, interaction and scaling tests
+        working-directory: flutter_app
+        run: flutter test
+      - name: Capture selected phone target
+        working-directory: flutter_app
+        run: >-
+          flutter test --update-goldens
+          --dart-define=CAPTURE_COMMAND_RAIL=true
+          test/command_rail_scaling_contract_test.dart
+      - name: Retain visual QA capture
+        uses: actions/upload-artifact@v7
+        with:
+          name: Command-Rail-Visual-QA
+          path: flutter_app/test/goldens/command_rail_phone.png
+          if-no-files-found: error
+          retention-days: 7
+      - name: Compile production iOS app
+        working-directory: flutter_app
+        run: >-
+          flutter build ios --release --no-codesign --flavor production
+          --target lib/main.dart --build-name 2.0.0 --build-number 303
