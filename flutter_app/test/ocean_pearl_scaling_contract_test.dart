@@ -213,13 +213,18 @@ void main() {
     );
     await tester.pump();
 
-    for (final destination in const ['Boards', 'New', 'Settings', 'Home']) {
-      await tester.tap(find.bySemanticsLabel(destination));
+    for (final destination in const [
+      ('Boards', Icons.view_list_outlined),
+      ('New', Icons.add_circle_outline),
+      ('Settings', Icons.tune_outlined),
+      ('Home', Icons.home_outlined),
+    ]) {
+      await tester.tap(find.byIcon(destination.$2));
       await tester.pump();
-      if (destination == 'Home') {
+      if (destination.$1 == 'Home') {
         expect(find.text('Kitchen Prep Board'), findsOneWidget);
       } else {
-        expect(find.text(destination), findsWidgets);
+        expect(find.text(destination.$1), findsWidgets);
       }
       expect(tester.takeException(), isNull);
     }
