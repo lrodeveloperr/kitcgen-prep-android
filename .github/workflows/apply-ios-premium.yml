@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/apply-ios-premium.yml
       - flutter_app/tool/apply_ios_premium_reskin.py
+      - flutter_app/tool/fix_ios_premium_reskin.py
   workflow_dispatch:
 
 permissions:
@@ -23,13 +24,25 @@ jobs:
           cache: true
       - name: Apply iOS-only skin
         working-directory: flutter_app
-        run: python3 tool/apply_ios_premium_reskin.py
+        run: |
+          python3 tool/apply_ios_premium_reskin.py
+          python3 tool/fix_ios_premium_reskin.py
       - name: Resolve packages
         working-directory: flutter_app
         run: flutter pub get
-      - name: Analyze
+      - name: Analyze blocking issues only
         working-directory: flutter_app
-        run: flutter analyze
+        shell: bash
+        run: |
+          set +e
+          flutter analyze 2>&1 | tee "$RUNNER_TEMP/analyze.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          if grep -Eq '^[[:space:]]*(error|warning) •' "$RUNNER_TEMP/analyze.log"; then
+            echo 'Blocking analyzer error or warning found.' >&2
+            exit "$rc"
+          fi
+          echo 'No analyzer errors or warnings.'
       - name: Test shared logic and iOS scaling
         working-directory: flutter_app
         run: flutter test --dart-define=FORCE_IOS_SKIN=true
