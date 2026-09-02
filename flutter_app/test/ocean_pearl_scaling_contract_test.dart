@@ -188,6 +188,26 @@ void main() {
       find.byKey(const Key('ocean-pearl-capture')),
       matchesGoldenFile('goldens/ocean_pearl_phone.png'),
     );
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.light,
+          colorSchemeSeed: const Color(0xFF247BD1),
+          scaffoldBackgroundColor: const Color(0xFFEEF6FF),
+        ),
+        home: RepaintBoundary(
+          key: const Key('ocean-pearl-shell-capture'),
+          child: KitchenShell(controller: fixture.controller),
+        ),
+      ),
+    );
+    await tester.pump();
+    await expectLater(
+      find.byKey(const Key('ocean-pearl-shell-capture')),
+      matchesGoldenFile('goldens/ocean_pearl_home.png'),
+    );
   });
 
   testWidgets('PressBench bottom bar changes all four destinations',

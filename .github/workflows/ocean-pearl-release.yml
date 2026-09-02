@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Ocean-Pearl-Visual-QA
-          path: flutter_app/test/goldens/ocean_pearl_phone.png
+          path: flutter_app/test/goldens/ocean_pearl_*.png
           if-no-files-found: error
           retention-days: 7
       - name: Compile production iOS app
