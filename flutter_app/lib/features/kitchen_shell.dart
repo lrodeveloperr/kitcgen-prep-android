@@ -15,17 +15,17 @@ bool _usesCommandRail(BuildContext context) =>
     Theme.of(context).brightness == Brightness.light;
 
 abstract final class _WorkbenchColors {
-  static const paper = Color(0xFFFFFEFA);
-  static const charcoal = Color(0xFF20262B);
-  static const orange = Color(0xFFD85B00);
-  static const orangeDeep = Color(0xFFB94B00);
-  static const orangeSoft = Color(0xFFFFE9D6);
-  static const blue = Color(0xFF456F85);
-  static const olive = Color(0xFF687A4E);
-  static const oliveSoft = Color(0xFFEAF0E3);
-  static const line = Color(0xFFD8D3CA);
-  static const muted = Color(0xFF636A6E);
-  static const shadow = Color(0x241F2529);
+  static const paper = Color(0xFFFFFFFF);
+  static const charcoal = Color(0xFF163451);
+  static const orange = Color(0xFF247BD1);
+  static const orangeDeep = Color(0xFF1769BA);
+  static const orangeSoft = Color(0xFFE7F3FF);
+  static const blue = Color(0xFF247BD1);
+  static const olive = Color(0xFF278E67);
+  static const oliveSoft = Color(0xFFE7F6EF);
+  static const line = Color(0xFFD7E6F3);
+  static const muted = Color(0xFF526D89);
+  static const shadow = Color(0x122F5E8B);
 }
 
 IconData _categoryIcon(GroceryCategory category) => switch (category) {
@@ -162,57 +162,31 @@ class _KitchenShellState extends State<KitchenShell> {
       NavigationDestination(icon: const Icon(Icons.tune_outlined), selectedIcon: const Icon(Icons.tune), label: s.t('settings')),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 800;
-        final content = Column(
-          children: [
-            Expanded(child: IndexedStack(index: index, children: pages)),
-            if (!widget.controller.monetization.removeAds &&
-                widget.controller.monetization.canRequestAds &&
-                widget.controller.monetization.bannerAdUnitId != null)
-              SafeArea(
-                top: false,
-                child: BannerSlot(service: widget.controller.monetization),
-              ),
-          ],
-        );
-        if (!wide) {
-          return Scaffold(
-            body: content,
-            bottomNavigationBar: _CommandRailNavigationBar(
-              selectedIndex: index,
-              onDestinationSelected: (value) => setState(() => index = value),
-              destinations: destinations,
-            ),
-          );
-        }
-        return Scaffold(
-          body: Row(
-            children: [
-              SafeArea(
-                child: NavigationRail(
-                  selectedIndex: index,
-                  onDestinationSelected: (value) => setState(() => index = value),
-                  labelType: NavigationRailLabelType.all,
-                  destinations: [
-                    for (final d in destinations)
-                      NavigationRailDestination(icon: d.icon, selectedIcon: d.selectedIcon, label: Text(d.label)),
-                  ],
-                ),
-              ),
-              const VerticalDivider(width: 1),
-              Expanded(child: content),
-            ],
+    final content = Column(
+      children: [
+        Expanded(child: IndexedStack(index: index, children: pages)),
+        if (!widget.controller.monetization.removeAds &&
+            widget.controller.monetization.canRequestAds &&
+            widget.controller.monetization.bannerAdUnitId != null)
+          SafeArea(
+            top: false,
+            child: BannerSlot(service: widget.controller.monetization),
           ),
-        );
-      },
+      ],
+    );
+    return Scaffold(
+      body: content,
+      bottomNavigationBar: _PressBenchBottomBar(
+        selectedIndex: index,
+        onDestinationSelected: (value) => setState(() => index = value),
+        destinations: destinations,
+      ),
     );
   }
 }
 
-class _CommandRailNavigationBar extends StatelessWidget {
-  const _CommandRailNavigationBar({
+class _PressBenchBottomBar extends StatelessWidget {
+  const _PressBenchBottomBar({
     required this.selectedIndex,
     required this.onDestinationSelected,
     required this.destinations,
@@ -230,26 +204,35 @@ class _CommandRailNavigationBar extends StatelessWidget {
       decoration: const BoxDecoration(
         color: _WorkbenchColors.paper,
         border: Border(top: BorderSide(color: _WorkbenchColors.line)),
+        boxShadow: [
+          BoxShadow(
+            color: _WorkbenchColors.shadow,
+            blurRadius: 16,
+            offset: Offset(0, -4),
+          ),
+        ],
       ),
       child: MediaQuery.withClampedTextScaling(
         maxScaleFactor: 1.35,
         child: Padding(
           padding: EdgeInsets.only(bottom: bottomInset),
           child: SizedBox(
-            height: 68,
-            child: Row(
+            height: 72,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Row(
               textDirection: direction,
               children: [
                 for (var i = 0; i < destinations.length; i++)
                   Expanded(
-                    child: _CommandDestination(
+                    child: _PressBenchDestination(
                       destination: destinations[i],
                       selected: selectedIndex == i,
-                      emphasized: i == 2,
                       onTap: () => onDestinationSelected(i),
                     ),
                   ),
               ],
+              ),
             ),
           ),
         ),
@@ -258,22 +241,20 @@ class _CommandRailNavigationBar extends StatelessWidget {
   }
 }
 
-class _CommandDestination extends StatelessWidget {
-  const _CommandDestination({
+class _PressBenchDestination extends StatelessWidget {
+  const _PressBenchDestination({
     required this.destination,
     required this.selected,
-    required this.emphasized,
     required this.onTap,
   });
 
   final NavigationDestination destination;
   final bool selected;
-  final bool emphasized;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? _WorkbenchColors.orange : _WorkbenchColors.charcoal;
+    final color = selected ? _WorkbenchColors.orange : _WorkbenchColors.muted;
     final icon = (selected ? destination.selectedIcon : destination.icon) ??
         const SizedBox.shrink();
     return Semantics(
@@ -281,59 +262,38 @@ class _CommandDestination extends StatelessWidget {
       selected: selected,
       label: destination.label,
       child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              height: 3,
-              width: selected && !emphasized ? 46 : 0,
-              decoration: const BoxDecoration(
-                color: _WorkbenchColors.orange,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(4)),
-              ),
+        child: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: selected ? _WorkbenchColors.orangeSoft : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
             ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (emphasized)
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: const BoxDecoration(
-                        color: _WorkbenchColors.orange,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconTheme(
-                        data: const IconThemeData(color: Colors.white, size: 27),
-                        child: icon,
-                      ),
-                    )
-                  else
-                    IconTheme(
-                      data: IconThemeData(color: color, size: 25),
-                      child: icon,
-                    ),
-                  if (!emphasized) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      destination.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 11,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconTheme(
+                  data: IconThemeData(color: color, size: 25),
+                  child: icon,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  destination.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -378,10 +338,17 @@ class PageFrame extends StatelessWidget {
                     color: _WorkbenchColors.paper,
                     border: Border(
                       bottom: BorderSide(
-                        color: _WorkbenchColors.orange,
-                        width: 3,
+                        color: _WorkbenchColors.line,
+                        width: 1,
                       ),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _WorkbenchColors.shadow,
+                        blurRadius: 14,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
@@ -420,7 +387,7 @@ class PageFrame extends StatelessWidget {
                 ),
               ),
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 20),
+                padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 24),
                 sliver: SliverToBoxAdapter(child: child),
               ),
             ],
@@ -494,7 +461,7 @@ class HomePage extends StatelessWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFFFFFEFA), Color(0xFFFFF7EF)],
+                    colors: [Color(0xFFFFFFFF), Color(0xFFF7FBFF)],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: _WorkbenchColors.line),
@@ -601,7 +568,7 @@ class ActiveSummary extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFFFEFA), Color(0xFFFFF7EF)],
+            colors: [Color(0xFFFFFFFF), Color(0xFFF7FBFF)],
           ),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: _WorkbenchColors.line),
@@ -2303,11 +2270,11 @@ class LiveBoardPage extends StatelessWidget {
           ],
         ),
         bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(3),
+          preferredSize: Size.fromHeight(1),
           child: SizedBox(
-            height: 3,
+            height: 1,
             width: double.infinity,
-            child: ColoredBox(color: _WorkbenchColors.orange),
+            child: ColoredBox(color: _WorkbenchColors.line),
           ),
         ),
         actions: [
@@ -2716,8 +2683,12 @@ class _ActiveTaskHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
-        color: _WorkbenchColors.paper,
-        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFFFF), Color(0xFFF7FBFF)],
+        ),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: _WorkbenchColors.line),
         boxShadow: const [
           BoxShadow(
@@ -3110,8 +3081,15 @@ class _CommandLaneSection extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: _WorkbenchColors.paper,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: _WorkbenchColors.line),
+            boxShadow: const [
+              BoxShadow(
+                color: _WorkbenchColors.shadow,
+                blurRadius: 14,
+                offset: Offset(0, 5),
+              ),
+            ],
           ),
           child: tasks.isEmpty
               ? Padding(
@@ -3151,7 +3129,7 @@ class _AllClearPanel extends StatelessWidget {
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: _WorkbenchColors.olive,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         children: [

@@ -42,19 +42,19 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
       listenable: Listenable.merge([controller, controller.monetization]),
       builder: (context, _) {
         final colors = ColorScheme.fromSeed(
-          seedColor: const Color(0xFFD85B00),
+          seedColor: const Color(0xFF247BD1),
           brightness: Brightness.light,
-          surface: const Color(0xFFFFFEFA),
+          surface: const Color(0xFFFFFFFF),
         ).copyWith(
-          primary: const Color(0xFFD85B00),
+          primary: const Color(0xFF247BD1),
           onPrimary: const Color(0xFFFFFFFF),
-          secondary: const Color(0xFF456F85),
+          secondary: const Color(0xFF278E67),
           onSecondary: const Color(0xFFFFFFFF),
-          tertiary: const Color(0xFF687A4E),
-          surface: const Color(0xFFFFFEFA),
-          onSurface: const Color(0xFF20262B),
-          outline: const Color(0xFFAAA59D),
-          outlineVariant: const Color(0xFFD8D3CA),
+          tertiary: const Color(0xFFAA7114),
+          surface: const Color(0xFFFFFFFF),
+          onSurface: const Color(0xFF163451),
+          outline: const Color(0xFF9AB3C9),
+          outlineVariant: const Color(0xFFD7E6F3),
         );
         return MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -86,32 +86,32 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
             brightness: Brightness.light,
             platform: defaultTargetPlatform,
             colorScheme: colors,
-            scaffoldBackgroundColor: const Color(0xFFF7F3EA),
+            scaffoldBackgroundColor: const Color(0xFFEEF6FF),
             splashFactory: InkSparkle.splashFactory,
             appBarTheme: AppBarTheme(
               elevation: 0,
               scrolledUnderElevation: 0,
               centerTitle: false,
-              backgroundColor: const Color(0xFFFFFEFA),
+              backgroundColor: const Color(0xFFFFFFFF),
               foregroundColor: colors.onSurface,
               surfaceTintColor: Colors.transparent,
             ),
             cardTheme: CardThemeData(
               margin: EdgeInsets.zero,
               elevation: 0,
-              shadowColor: const Color(0x241F2529),
-              color: const Color(0xFFFFFEFA),
+              shadowColor: const Color(0x122F5E8B),
+              color: const Color(0xFFFFFFFF),
               surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-                side: const BorderSide(color: Color(0xFFD8D3CA)),
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: Color(0xFFD7E6F3)),
               ),
             ),
             navigationBarTheme: NavigationBarThemeData(
               height: 68,
               elevation: 0,
-              backgroundColor: const Color(0xFFFFFEFA),
-              indicatorColor: const Color(0xFFFFE9D6),
+              backgroundColor: const Color(0xFFFFFFFF),
+              indicatorColor: const Color(0xFFE7F3FF),
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 return TextStyle(
                   fontSize: 11,
@@ -120,34 +120,34 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
                       : FontWeight.w500,
                   color: states.contains(WidgetState.selected)
                       ? colors.primary
-                      : const Color(0xFF636A6E),
+                      : const Color(0xFF526D89),
                 );
               }),
             ),
             navigationRailTheme: const NavigationRailThemeData(
-              backgroundColor: Color(0xFFFFFEFA),
-              indicatorColor: Color(0xFFFFE9D6),
-              selectedIconTheme: IconThemeData(color: Color(0xFFD85B00)),
+              backgroundColor: Color(0xFFFFFFFF),
+              indicatorColor: Color(0xFFE7F3FF),
+              selectedIconTheme: IconThemeData(color: Color(0xFF247BD1)),
               selectedLabelTextStyle: TextStyle(
-                color: Color(0xFFD85B00),
+                color: Color(0xFF247BD1),
                 fontWeight: FontWeight.w700,
               ),
             ),
             listTileTheme: const ListTileThemeData(
-              iconColor: Color(0xFF456F85),
-              textColor: Color(0xFF20262B),
+              iconColor: Color(0xFF247BD1),
+              textColor: Color(0xFF163451),
               minVerticalPadding: 12,
               contentPadding: EdgeInsets.symmetric(horizontal: 14),
             ),
             dividerTheme: const DividerThemeData(
-              color: Color(0xFFD8D3CA),
+              color: Color(0xFFD7E6F3),
               thickness: 1,
             ),
             filledButtonTheme: FilledButtonThemeData(
               style: FilledButton.styleFrom(
                 minimumSize: const Size(44, 50),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 textStyle: const TextStyle(fontWeight: FontWeight.w700),
               ),
@@ -156,19 +156,19 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(44, 48),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
-              fillColor: const Color(0xFFFFFEFA),
+              fillColor: const Color(0xFFFFFFFF),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(color: colors.outlineVariant),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(color: colors.outlineVariant),
               ),
             ),
