@@ -30,7 +30,7 @@ class MonetizationService extends ChangeNotifier {
 
   String get productId => _configuredProductId;
 
-  bool get supportsAds => Platform.isAndroid;
+  bool get supportsAds => Platform.isAndroid || Platform.isIOS;
 
   String? get bannerAdUnitId {
     if (!supportsAds) return null;
@@ -43,9 +43,6 @@ class MonetizationService extends ChangeNotifier {
 
   Future<void> initialize() async {
     if (initialized) return;
-    // Kitchen Prep Board is a paid, ad-free app on iOS. The canonical shared
-    // source keeps Android's remove-ads subscription, while the signed iOS
-    // release workflow also strips both store/ad plugins from the bundle.
     if (!supportsAds) {
       removeAds = true;
       initialized = true;
@@ -63,8 +60,6 @@ class MonetizationService extends ChangeNotifier {
         _productDetails = response.productDetails.first;
         product = StoreProduct(price: _productDetails!.price);
       }
-      // Reconcile from the store every launch. Entitlement is deliberately not
-      // trusted from local storage, so an expired subscription cannot suppress ads.
       await _store.restorePurchases();
     }
     await refreshConsent();
