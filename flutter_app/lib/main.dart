@@ -114,9 +114,10 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
             ),
             cardTheme: CardThemeData(
               margin: EdgeInsets.zero,
-              elevation: 0,
+              elevation: useIOSWorkbench ? 2.5 : 0,
+              shadowColor: const Color(0x26182B24),
               color: useIOSWorkbench
-                  ? const Color(0xFFFFFCF5)
+                  ? const Color(0xFFFFFEFA)
                   : colors.surfaceContainerLow,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(useIOSWorkbench ? 18 : 12),
@@ -128,7 +129,7 @@ class _KitchenBootstrapState extends State<KitchenBootstrap> {
               ),
             ),
             navigationBarTheme: NavigationBarThemeData(
-              height: useIOSWorkbench ? 68 : 80,
+              height: useIOSWorkbench ? 62 : 80,
               elevation: 0,
               backgroundColor: useIOSWorkbench
                   ? const Color(0xFFFFFCF5)
