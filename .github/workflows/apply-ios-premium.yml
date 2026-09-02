@@ -1,0 +1,48 @@
+name: Apply and verify iOS premium reskin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-ios-premium.yml
+      - flutter_app/tool/apply_ios_premium_reskin.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+      - name: Apply iOS-only skin
+        working-directory: flutter_app
+        run: python3 tool/apply_ios_premium_reskin.py
+      - name: Resolve packages
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Analyze
+        working-directory: flutter_app
+        run: flutter analyze
+      - name: Test shared logic and iOS scaling
+        working-directory: flutter_app
+        run: flutter test --dart-define=FORCE_IOS_SKIN=true
+      - name: Commit verified presentation changes
+        run: |
+          set -euo pipefail
+          git add flutter_app/lib/main.dart flutter_app/lib/features/kitchen_shell.dart flutter_app/test/ios_premium_scaling_contract_test.dart
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'No presentation changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'design: premium adaptive iOS Kitchen workbench'
+          git push origin HEAD:main
