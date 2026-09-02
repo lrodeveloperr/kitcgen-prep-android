@@ -11,6 +11,22 @@ import 'package:kitchen_prep_board/l10n/kitchen_strings.dart';
 
 KitchenStrings _s(BuildContext context) => KitchenStrings(Localizations.localeOf(context));
 
+bool _usesCalmWorkbench(BuildContext context) =>
+    const bool.fromEnvironment('FORCE_IOS_SKIN') ||
+    Theme.of(context).platform == TargetPlatform.iOS ||
+    Theme.of(context).platform == TargetPlatform.macOS;
+
+abstract final class _WorkbenchColors {
+  static const sage = Color(0xFF315D4B);
+  static const sageSoft = Color(0xFFDDE9E1);
+  static const paper = Color(0xFFFFFCF5);
+  static const charcoal = Color(0xFF1F2B26);
+  static const orange = Color(0xFFE6843D);
+  static const orangeSoft = Color(0xFFFFE5D2);
+  static const line = Color(0xFFE1E5DD);
+  static const muted = Color(0xFF65706A);
+}
+
 Future<bool> _runKitchenAction(
   BuildContext context,
   Future<void> Function() action,
@@ -161,6 +177,7 @@ class HomePage extends StatelessWidget {
     final s = _s(context);
     final board = controller.activeBoard;
     final draft = controller.recoverableDraft;
+    final calm = _usesCalmWorkbench(context);
     return PageFrame(
       title: s.t('home'),
       child: Column(
@@ -178,7 +195,7 @@ class HomePage extends StatelessWidget {
           ],
           if (board != null) ...[
             ActiveSummary(board: board),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: () => _openLive(context, controller, board),
               icon: const Icon(Icons.play_arrow_rounded),
@@ -201,18 +218,58 @@ class HomePage extends StatelessWidget {
               label: Text(s.t('continueDraft')),
             ),
           ] else ...[
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
+            if (calm)
+              Container(
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                decoration: BoxDecoration(
+                  color: _WorkbenchColors.paper,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: _WorkbenchColors.line),
+                ),
                 child: Column(
                   children: [
-                    const Icon(Icons.kitchen_outlined, size: 48),
-                    const SizedBox(height: 12),
-                    Text(s.t('noBoard'), style: Theme.of(context).textTheme.titleLarge),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: Image.asset(
+                        'kitchen_prep_mark.png',
+                        width: 88,
+                        height: 88,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      s.t('noBoard'),
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: _WorkbenchColors.charcoal,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      s.t('trackQuantities'),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: _WorkbenchColors.muted,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
+              )
+            else
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.kitchen_outlined, size: 48),
+                      const SizedBox(height: 12),
+                      Text(s.t('noBoard'), style: Theme.of(context).textTheme.titleLarge),
+                    ],
+                  ),
+                ),
               ),
-            ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: onNew,
@@ -257,6 +314,76 @@ class ActiveSummary extends StatelessWidget {
     final now = running > 0 ? running : (ready > 0 ? 1 : 0);
     final next =
         math.max(ready - (running == 0 && ready > 0 ? 1 : 0), 0).toInt();
+    if (_usesCalmWorkbench(context)) {
+      return Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: _WorkbenchColors.paper,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: _WorkbenchColors.line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    board.title,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: _WorkbenchColors.charcoal,
+                        ),
+                  ),
+                ),
+                if (board.status == BoardStatus.paused)
+                  _StatusPill(
+                    label: s.t('pausedBoard'),
+                    color: _WorkbenchColors.orange,
+                    background: _WorkbenchColors.orangeSoft,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _LaneMetric(
+                    label: s.t('now'),
+                    value: now,
+                    color: _WorkbenchColors.orange,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _LaneMetric(
+                    label: s.t('next'),
+                    value: next,
+                    color: _WorkbenchColors.sage,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _LaneMetric(
+                    label: s.t('waiting'),
+                    value: waiting,
+                    color: _WorkbenchColors.muted,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _LaneMetric(
+                    label: s.t('done'),
+                    value: board.doneCount,
+                    color: const Color(0xFF6E8C65),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -279,6 +406,78 @@ class ActiveSummary extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LaneMetric extends StatelessWidget {
+  const _LaneMetric({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '$value',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: _WorkbenchColors.muted,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({
+    required this.label,
+    required this.color,
+    required this.background,
+  });
+
+  final String label;
+  final Color color;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      );
 }
 
 class _Metric extends StatelessWidget {
@@ -1569,6 +1768,9 @@ class LiveBoardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = _s(context);
+    if (_usesCalmWorkbench(context)) {
+      return _buildCalmWorkbench(context, s);
+    }
     return Scaffold(
       appBar: AppBar(title: Text(board.title)),
       body: ListenableBuilder(
@@ -1741,6 +1943,213 @@ class LiveBoardPage extends StatelessWidget {
     );
   }
 
+  Widget _buildCalmWorkbench(BuildContext context, KitchenStrings s) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          board.title,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      body: ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          final running = board.tasks
+              .where((task) => task.status == TaskStatus.running)
+              .firstOrNull;
+          final ready = board.tasks
+              .where((task) => task.status == TaskStatus.ready)
+              .firstOrNull;
+          final focus = running ?? ready;
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                children: [
+                  ActiveSummary(board: board),
+                  const SizedBox(height: 12),
+                  if (focus != null)
+                    _ActiveTaskHero(
+                      controller: controller,
+                      board: board,
+                      task: focus,
+                    )
+                  else
+                    _AllClearPanel(board: board),
+                  if (controller.expiredTaskIds.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _WorkbenchColors.orangeSoft,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.notifications_active_rounded,
+                            color: _WorkbenchColors.orange,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              s.t('attention'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: _WorkbenchColors.charcoal,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${controller.expiredTaskIds.length}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: _WorkbenchColors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Text(
+                    s.t('tasks'),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 10),
+                  _TaskLanes(
+                    controller: controller,
+                    board: board,
+                    focusTaskId: focus?.id,
+                  ),
+                  if (board.mode == BoardMode.station &&
+                      board.stationItems.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      s.t('stationMode'),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 10),
+                    for (final item in board.stationItems)
+                      LiveStationRow(
+                        controller: controller,
+                        board: board,
+                        item: item,
+                      ),
+                  ],
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            if (board.status == BoardStatus.paused) {
+                              await _runKitchenAction(
+                                context,
+                                () => controller.resumeBoard(board),
+                              );
+                            } else {
+                              final ok = await _confirm(
+                                context,
+                                s.t('timersContinue'),
+                                s,
+                                confirmLabel: s.t('pauseNewTasks'),
+                              );
+                              if (ok && context.mounted) {
+                                await _runKitchenAction(
+                                  context,
+                                  () => controller.pauseBoard(board),
+                                );
+                              }
+                            }
+                          },
+                          icon: Icon(
+                            board.status == BoardStatus.paused
+                                ? Icons.play_arrow_rounded
+                                : Icons.pause_rounded,
+                          ),
+                          label: Text(
+                            board.status == BoardStatus.paused
+                                ? s.t('resume')
+                                : s.t('pause'),
+                          ),
+                        ),
+                      ),
+                      if (board.unfinishedCount > 0) ...[
+                        const SizedBox(width: 10),
+                        IconButton.outlined(
+                          tooltip: s.t('handoff'),
+                          onPressed: () => _handoff(context, s),
+                          icon: const Icon(Icons.sync_alt_rounded),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  FilledButton.icon(
+                    onPressed: () => _finishCalmBoard(context, s),
+                    icon: const Icon(Icons.flag_outlined),
+                    label: Text(
+                      board.unfinishedCount == 0
+                          ? s.t('closeCompleted')
+                          : '${s.t('closeUnfinished')} (${board.unfinishedCount})',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _finishCalmBoard(
+    BuildContext context,
+    KitchenStrings s,
+  ) async {
+    final message = board.unfinishedCount == 0
+        ? s.t('closeCompleted')
+        : '${s.t('closeUnfinished')}: ${board.unfinishedCount}';
+    final ok = await _confirm(
+      context,
+      message,
+      s,
+      confirmLabel: board.unfinishedCount == 0
+          ? s.t('closeCompleted')
+          : s.t('closeUnfinished'),
+    );
+    if (!ok || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final saved = await _runKitchenAction(
+      context,
+      () => controller.finishBoard(board),
+    );
+    if (!saved || !context.mounted) return;
+    Navigator.pop(context);
+    messenger.showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 10),
+        content: Text(s.t('saved')),
+        action: SnackBarAction(
+          label: s.t('undo'),
+          onPressed: () => _runKitchenValue(
+            messenger.context,
+            () => controller.undoLastFinish(s),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _handoff(BuildContext context, KitchenStrings s) async {
     final note = TextEditingController(text: board.handoffNote ?? '');
     bool keepTimers = true;
@@ -1800,6 +2209,435 @@ extension _FirstOrNull<T> on Iterable<T> {
   }
 }
 
+class _ActiveTaskHero extends StatelessWidget {
+  const _ActiveTaskHero({
+    required this.controller,
+    required this.board,
+    required this.task,
+  });
+
+  final KitchenController controller;
+  final KitchenBoard board;
+  final KitchenTask task;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _s(context);
+    final reading = readTimer(task, DateTime.now().millisecondsSinceEpoch);
+    final pausedTimer =
+        task.status == TaskStatus.ready && task.pausedRemainingMs != null;
+    final isRunning = task.status == TaskStatus.running;
+    final totalMs = math.max((task.durationSeconds ?? 0) * 1000, 1);
+    final progress = isRunning && task.deadlineEpochMs != null
+        ? (1 - reading.remainingMs / totalMs).clamp(0.0, 1.0).toDouble()
+        : 0.0;
+    final timerText = isRunning && task.deadlineEpochMs != null
+        ? (reading.expired ? '00:00' : _duration(reading.remainingMs))
+        : s.t('now');
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        color: _WorkbenchColors.sage,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _StatusPill(
+                label: reading.expired ? s.t('attention') : s.t('now'),
+                color: reading.expired
+                    ? _WorkbenchColors.orange
+                    : _WorkbenchColors.sage,
+                background: reading.expired
+                    ? _WorkbenchColors.orangeSoft
+                    : _WorkbenchColors.sageSoft,
+              ),
+              const Spacer(),
+              PopupMenuButton<String>(
+                iconColor: _WorkbenchColors.paper,
+                tooltip: s.t('more'),
+                onSelected: (value) => _moreAction(context, value, s),
+                itemBuilder: (context) => [
+                  if (isRunning && task.deadlineEpochMs != null)
+                    for (final minutes in const [1, 5, 10])
+                      PopupMenuItem(
+                        value: 'add_$minutes',
+                        child: Text('+$minutes ${s.t('minutes')}'),
+                      ),
+                  if (board.tasks.indexOf(task) > 0)
+                    PopupMenuItem(
+                      value: 'top',
+                      child: Text(s.t('moveTop')),
+                    ),
+                  PopupMenuItem(value: 'skip', child: Text(s.t('skip'))),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 148,
+            height: 148,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox.expand(
+                  child: CircularProgressIndicator(
+                    value: task.deadlineEpochMs == null ? 0 : progress,
+                    strokeWidth: 8,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: const Color(0xFF527363),
+                    color: _WorkbenchColors.orange,
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (task.deadlineEpochMs == null)
+                      const Icon(
+                        Icons.play_arrow_rounded,
+                        color: _WorkbenchColors.paper,
+                        size: 28,
+                      ),
+                    Text(
+                      timerText,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            color: _WorkbenchColors.paper,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1.2,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            task.name,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: _WorkbenchColors.paper,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          if (task.note?.trim().isNotEmpty ?? false) ...[
+            const SizedBox(height: 6),
+            Text(
+              task.note!,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: const Color(0xFFDCE8E1),
+                  ),
+            ),
+          ],
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    foregroundColor: _WorkbenchColors.charcoal,
+                    backgroundColor: _WorkbenchColors.paper,
+                  ),
+                  onPressed: board.status == BoardStatus.paused && !isRunning
+                      ? null
+                      : () => isRunning
+                          ? _complete(context, s)
+                          : _runKitchenAction(
+                              context,
+                              () => pausedTimer
+                                  ? controller.resumeTaskTimer(board, task, s)
+                                  : controller.startTask(board, task, s),
+                            ),
+                  icon: Icon(
+                    isRunning
+                        ? Icons.check_rounded
+                        : Icons.play_arrow_rounded,
+                  ),
+                  label: Text(
+                    isRunning
+                        ? s.t('done')
+                        : pausedTimer
+                            ? s.t('resume')
+                            : s.t('start'),
+                  ),
+                ),
+              ),
+              if (isRunning && task.deadlineEpochMs != null) ...[
+                const SizedBox(width: 10),
+                IconButton.filled(
+                  style: IconButton.styleFrom(
+                    foregroundColor: _WorkbenchColors.paper,
+                    backgroundColor: const Color(0xFF527363),
+                    minimumSize: const Size(50, 50),
+                  ),
+                  tooltip: s.t('pause'),
+                  onPressed: () => _runKitchenAction(
+                    context,
+                    () => controller.pauseTaskTimer(board, task),
+                  ),
+                  icon: const Icon(Icons.pause_rounded),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _complete(BuildContext context, KitchenStrings s) async {
+    final saved = await _runKitchenAction(
+      context,
+      () => controller.markDone(board, task),
+    );
+    if (!saved || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(s.t('done')),
+        action: SnackBarAction(
+          label: s.t('undo'),
+          onPressed: () => _runKitchenAction(
+            context,
+            () => controller.restore(board, task),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _moreAction(
+    BuildContext context,
+    String value,
+    KitchenStrings s,
+  ) async {
+    if (value.startsWith('add_')) {
+      final minutes = int.tryParse(value.substring(4));
+      if (minutes != null) {
+        await _runKitchenAction(
+          context,
+          () => controller.addTime(
+            board,
+            task,
+            Duration(minutes: minutes),
+            s,
+          ),
+        );
+      }
+      return;
+    }
+    if (value == 'top') {
+      await _runKitchenAction(
+        context,
+        () => controller.moveTaskToTop(board, task),
+      );
+      return;
+    }
+    if (value == 'skip') {
+      if (task.status == TaskStatus.running && task.deadlineEpochMs != null) {
+        final ok = await _confirm(
+          context,
+          s.t('skipTimerWarning'),
+          s,
+          confirmLabel: s.t('skip'),
+        );
+        if (!ok || !context.mounted) return;
+      }
+      await _runKitchenAction(
+        context,
+        () => controller.markSkipped(board, task),
+      );
+    }
+  }
+}
+
+enum _TaskLane { now, next, waiting, done }
+
+class _TaskLanes extends StatefulWidget {
+  const _TaskLanes({
+    required this.controller,
+    required this.board,
+    this.focusTaskId,
+  });
+
+  final KitchenController controller;
+  final KitchenBoard board;
+  final String? focusTaskId;
+
+  @override
+  State<_TaskLanes> createState() => _TaskLanesState();
+}
+
+class _TaskLanesState extends State<_TaskLanes> {
+  _TaskLane selected = _TaskLane.next;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _s(context);
+    final nowTasks = widget.board.tasks
+        .where((task) => task.status == TaskStatus.running)
+        .toList();
+    final nextTasks = widget.board.tasks
+        .where((task) => task.status == TaskStatus.ready)
+        .toList();
+    final waitingTasks = widget.board.tasks
+        .where((task) =>
+            task.status == TaskStatus.waiting ||
+            task.status == TaskStatus.blocked)
+        .toList();
+    final doneTasks = widget.board.tasks.where((task) => task.isTerminal).toList();
+    final lanes = <_TaskLane, List<KitchenTask>>{
+      _TaskLane.now: nowTasks,
+      _TaskLane.next: nextTasks,
+      _TaskLane.waiting: waitingTasks,
+      _TaskLane.done: doneTasks,
+    };
+    final labels = <_TaskLane, String>{
+      _TaskLane.now: s.t('now'),
+      _TaskLane.next: s.t('next'),
+      _TaskLane.waiting: s.t('waiting'),
+      _TaskLane.done: s.t('done'),
+    };
+    final selectedTasks = lanes[selected]!
+        .where((task) => task.id != widget.focusTaskId)
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: _WorkbenchColors.paper,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _WorkbenchColors.line),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              for (final lane in _TaskLane.values)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => setState(() => selected = lane),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 160),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected == lane
+                              ? _WorkbenchColors.sageSoft
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              '${lanes[lane]!.length}',
+                              style: TextStyle(
+                                color: selected == lane
+                                    ? _WorkbenchColors.sage
+                                    : _WorkbenchColors.muted,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              labels[lane]!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: selected == lane
+                                    ? _WorkbenchColors.sage
+                                    : _WorkbenchColors.muted,
+                                fontWeight: selected == lane
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (selectedTasks.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Icon(
+                selected == _TaskLane.done
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.horizontal_rule_rounded,
+                color: _WorkbenchColors.muted,
+              ),
+            )
+          else ...[
+            const SizedBox(height: 8),
+            for (final task in selectedTasks)
+              TaskActionCard(
+                controller: widget.controller,
+                board: widget.board,
+                task: task,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AllClearPanel extends StatelessWidget {
+  const _AllClearPanel({required this.board});
+
+  final KitchenBoard board;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _s(context);
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: _WorkbenchColors.sage,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.check_circle_outline_rounded,
+            color: _WorkbenchColors.paper,
+            size: 52,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            s.t('done'),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: _WorkbenchColors.paper,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${board.doneCount} ${s.t('tasks')}',
+            style: const TextStyle(color: Color(0xFFDCE8E1)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class TaskActionCard extends StatelessWidget {
   const TaskActionCard({
     required this.controller,
@@ -1821,6 +2659,15 @@ class TaskActionCard extends StatelessWidget {
         .whereType<KitchenTask>()
         .map((item) => item.name)
         .join(', ');
+    if (_usesCalmWorkbench(context)) {
+      return _buildCalmTask(
+        context,
+        s,
+        reading,
+        pausedTimer,
+        dependencies,
+      );
+    }
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -1936,6 +2783,155 @@ class TaskActionCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCalmTask(
+    BuildContext context,
+    KitchenStrings s,
+    TimerReading reading,
+    bool pausedTimer,
+    String dependencies,
+  ) {
+    final isRunning = task.status == TaskStatus.running;
+    final statusColor = task.isTerminal
+        ? const Color(0xFF6E8C65)
+        : task.status == TaskStatus.blocked
+            ? _WorkbenchColors.muted
+            : isRunning
+                ? _WorkbenchColors.orange
+                : _WorkbenchColors.sage;
+    final detail = <String>[
+      if (isRunning && task.deadlineEpochMs != null)
+        reading.expired ? s.t('attention') : _duration(reading.remainingMs),
+      if (!isRunning && task.hasTimer)
+        '${((task.pausedRemainingMs ?? (task.durationSeconds! * 1000)) / 60000).ceil()} ${s.t('minutes')}',
+      if (task.status == TaskStatus.blocked && dependencies.isNotEmpty)
+        '${s.t('dependency')}: $dependencies',
+    ].join(' · ');
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 12, 4, 12),
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: _WorkbenchColors.line),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(
+              color: statusColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  task.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: task.isTerminal
+                            ? _WorkbenchColors.muted
+                            : _WorkbenchColors.charcoal,
+                        decoration: task.isTerminal
+                            ? TextDecoration.lineThrough
+                            : null,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                if (detail.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    detail,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: reading.expired
+                              ? _WorkbenchColors.orange
+                              : _WorkbenchColors.muted,
+                          fontWeight: reading.expired
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                        ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (!task.isTerminal)
+            IconButton(
+              tooltip: isRunning
+                  ? s.t('done')
+                  : pausedTimer
+                      ? s.t('resume')
+                      : s.t('start'),
+              onPressed: board.status == BoardStatus.paused ||
+                      task.status == TaskStatus.blocked
+                  ? (isRunning ? () => _complete(context, s) : null)
+                  : () => isRunning
+                      ? _complete(context, s)
+                      : _runKitchenAction(
+                          context,
+                          () => pausedTimer
+                              ? controller.resumeTaskTimer(board, task, s)
+                              : controller.startTask(board, task, s),
+                        ),
+              icon: Icon(
+                isRunning
+                    ? Icons.check_circle_rounded
+                    : Icons.play_circle_outline_rounded,
+                color: isRunning
+                    ? _WorkbenchColors.orange
+                    : _WorkbenchColors.sage,
+              ),
+            )
+          else
+            IconButton(
+              tooltip: s.t('restore'),
+              onPressed: () => _runKitchenAction(
+                context,
+                () => controller.restore(board, task),
+              ),
+              icon: const Icon(
+                Icons.replay_rounded,
+                color: _WorkbenchColors.muted,
+              ),
+            ),
+          if (!task.isTerminal)
+            PopupMenuButton<String>(
+              tooltip: s.t('more'),
+              onSelected: (value) async {
+                if (value == 'top') {
+                  await _runKitchenAction(
+                    context,
+                    () => controller.moveTaskToTop(board, task),
+                  );
+                } else if (value == 'skip') {
+                  await _skip(context, s);
+                } else if (value == 'pause') {
+                  await _runKitchenAction(
+                    context,
+                    () => controller.pauseTaskTimer(board, task),
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                if (isRunning && task.deadlineEpochMs != null)
+                  PopupMenuItem(value: 'pause', child: Text(s.t('pause'))),
+                if (board.tasks.indexOf(task) > 0)
+                  PopupMenuItem(value: 'top', child: Text(s.t('moveTop'))),
+                PopupMenuItem(value: 'skip', child: Text(s.t('skip'))),
+              ],
+            ),
+        ],
       ),
     );
   }
