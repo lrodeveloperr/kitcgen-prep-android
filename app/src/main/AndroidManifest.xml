@@ -7,7 +7,7 @@
     <application
         android:name=".KitchenPrepApplication"
         android:theme="@style/Theme.KitchenPrep"
-        android:label="Kitchen Prep Board"
+        android:label="Prep Board"
         android:allowBackup="false"
         android:supportsRtl="true">
 

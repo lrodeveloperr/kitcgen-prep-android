@@ -1,5 +1,5 @@
 name: kitchen_prep_board
-description: Kitchen Prep Board - local-first prep workflow.
+description: Prep Board - local-first prep workflow.
 publish_to: none
 version: 2.0.0+200
 

@@ -58,17 +58,17 @@ android {
         create("production") {
             dimension = "default"
             applicationIdSuffix = ""
-            manifestPlaceholders["appName"] = "Kitchen Prep Board"
+            manifestPlaceholders["appName"] = "Prep Board"
         }
         create("staging") {
             dimension = "default"
             applicationIdSuffix = ".stg"
-            manifestPlaceholders["appName"] = "[STG] Kitchen Prep Board"
+            manifestPlaceholders["appName"] = "[STG] Prep Board"
         }
         create("development") {
             dimension = "default"
             applicationIdSuffix = ".dev"
-            manifestPlaceholders["appName"] = "[DEV] Kitchen Prep Board"
+            manifestPlaceholders["appName"] = "[DEV] Prep Board"
         }
     }
 

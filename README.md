@@ -1,6 +1,6 @@
-# Kitchen Prep Board — cross-platform v2.0.0
+# Prep Board — cross-platform v2.0.0
 
-`main` is the canonical source for the Very Good CLI/Flutter implementation of Kitchen Prep Board on Android and iOS.
+`main` is the canonical source for the Very Good CLI/Flutter implementation of Prep Board on Android and iOS.
 
 The production application lives in [`flutter_app`](flutter_app). It contains:
 

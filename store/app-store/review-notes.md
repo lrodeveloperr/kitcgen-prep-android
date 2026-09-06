@@ -1,6 +1,6 @@
-# App Review notes — Kitchen Prep Board 2.0.0
+# App Review notes — Prep Board 2.0.0
 
-Kitchen Prep Board is a paid-upfront, ad-free, local-first kitchen workflow utility.
+Prep Board is a paid-upfront, ad-free, local-first kitchen workflow utility.
 
 - No account, login, demo credentials, external hardware or server connection is required.
 - The app contains no in-app purchases, subscriptions, advertising or analytics on iOS.

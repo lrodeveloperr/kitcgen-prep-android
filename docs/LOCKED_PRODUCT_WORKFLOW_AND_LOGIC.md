@@ -1,4 +1,4 @@
-# Kitchen Prep Board — Locked Product Workflow and Logic
+# Prep Board — Locked Product Workflow and Logic
 
 Status: **LOCKED FOR IMPLEMENTATION**  
 Version: **2.0.0**  
@@ -21,7 +21,7 @@ The implementation sequence is:
 
 ## 2. Product promise
 
-Kitchen Prep Board helps a person see:
+Prep Board helps a person see:
 
 - what needs attention now;
 - what is waiting;

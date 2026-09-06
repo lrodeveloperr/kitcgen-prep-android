@@ -26,7 +26,7 @@ fun OnboardingScreen(page:Int, next:()->Unit) {
         verticalArrangement=Arrangement.SpaceBetween
     ) {
         Column(verticalArrangement=Arrangement.spacedBy(16.dp)) {
-            Text(if(page==0) "Kitchen Prep Board" else "A board in three moves", style=MaterialTheme.typography.headlineLarge)
+            Text(if(page==0) "Prep Board" else "A board in three moves", style=MaterialTheme.typography.headlineLarge)
             if(page==0) {
                 Text("Prep without the scramble", style=MaterialTheme.typography.titleLarge)
                 Text("See what to do now, what comes next, and what needs attention—without turning your station into restaurant software.")
@@ -82,7 +82,7 @@ fun KitchenScreen(s:KitchenUiState, dispatch:(String,String?)->Unit) {
 private fun HomeScreen(s:KitchenUiState, dispatch:(String,String?)->Unit) {
     LazyColumn(verticalArrangement=Arrangement.spacedBy(16.dp),contentPadding=PaddingValues(bottom=24.dp)) {
         item {
-            GUHeader("Kitchen Prep Board","Tell the cook what to do now, what comes next, and how to get everything ready together.") {
+            GUHeader("Prep Board","Tell the cook what to do now, what comes next, and how to get everything ready together.") {
                 SettingsButton { dispatch("SETTINGS",null) }
             }
         }
@@ -510,7 +510,7 @@ private fun SettingsScreen(s:KitchenUiState, dispatch:(String,String?)->Unit) {
     )
     if(helpOpen) AlertDialog(
         onDismissRequest={helpOpen=false},
-        title={Text("Kitchen Prep Board")},
+        title={Text("Prep Board")},
         text={Text("This app is an organizational aid only. Timers and task completion do not prove food safety, doneness, safe internal temperature, allergen control, storage safety, or freedom from cross-contamination.")},
         confirmButton={TextButton(onClick={helpOpen=false}){Text("Done")}}
     )

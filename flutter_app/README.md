@@ -1,4 +1,4 @@
-# Kitchen Prep Board Flutter app
+# Prep Board Flutter app
 
 This is the canonical Android and iOS application built from the Very Good CLI Flutter structure.
 
@@ -9,7 +9,7 @@ This is the canonical Android and iOS application built from the Very Good CLI F
 - `lib/catalogue` — preloaded kitchen catalogue
 - `lib/data` — atomic offline persistence
 - `lib/domain` — board, task, scheduling and timer logic
-- `lib/features` — responsive Kitchen Prep Board UI
+- `lib/features` — responsive Prep Board UI
 - `lib/l10n` — ten-language localized strings, including both Chinese scripts
 - `lib/services` — notifications and platform-specific monetization
 - `android` — Android runner and platform configuration

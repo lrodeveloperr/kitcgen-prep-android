@@ -1,6 +1,6 @@
 # App Store release configuration
 
-- App name: **Kitchen Prep Board**
+- App name: **Prep Board**
 - Bundle ID: `studio.gooduse.kitchenprep`
 - SKU: `kitchen-prep-board-ios`
 - Apple team: `49SQ3XQ68Q`

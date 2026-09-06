@@ -59,7 +59,7 @@ class KitchenStrings {
 
   static const _tables = <String, Map<String, String>>{
     'en': {
-      'appName': 'Kitchen Prep Board', 'home': 'Home', 'boards': 'Boards',
+      'appName': 'Prep Board', 'home': 'Home', 'boards': 'Boards',
       'new': 'New', 'settings': 'Settings', 'noBoard': 'No board yet',
       'startBoard': 'Start board', 'continueBoard': 'Continue', 'continueDraft': 'Continue draft',
       'now': 'Now', 'waiting': 'Waiting', 'next': 'Next', 'done': 'Done',
