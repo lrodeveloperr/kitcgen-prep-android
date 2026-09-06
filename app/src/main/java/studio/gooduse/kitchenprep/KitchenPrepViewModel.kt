@@ -118,7 +118,7 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
                     "REMOVE_ADS" -> monetization.purchaseRemoveAds()
                     "DELETE_LOCAL_DATA" -> {
                         repository.deleteAllLocalData()
-                        preferences.setScreen(BackendState.HOME.name)
+                        preferences.clearLocalAppState()
                         mutable.value = mutable.value.copy(userMessage = "Local app data deleted. Any Play subscription remains separate.")
                     }
                     "CANCEL_BOARD" -> { repository.cancelBoard(); preferences.setScreen(BackendState.HOME.name) }
@@ -126,7 +126,6 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
             }
         }
     }
-
 
     private suspend fun handleStartTask(taskId: String, allowDependencyOverride: Boolean) {
         when (repository.startTask(taskId, allowDependencyOverride)) {
@@ -200,14 +199,17 @@ class KitchenPrepViewModel(app: Application) : AndroidViewModel(app), KitchenBac
             timing = board?.timingMode?.let { runCatching { TimingMode.valueOf(it) }.getOrNull() },
             targetReadyAt = board?.targetReadyAt,
             paused = board?.status == "PAUSED",
-            adRequestAllowed = money.shouldRequestAds && pref.onboardingComplete,
+            adRequestAllowed = money.shouldRequestAds,
             privacyChoicesRequired = money.privacyOptionsRequired,
             entitlementState = money.entitlement,
+            removeAdsFormattedPrice = money.removeAdsFormattedPrice,
+            removeAdsBillingPeriod = money.removeAdsBillingPeriod,
+            purchaseInProgress = money.purchaseInProgress,
             settingsReturn = runCatching { BackendState.valueOf(pref.settingsReturnState) }.getOrDefault(BackendState.HOME),
             tasks = tasks,
             prepGaps = gaps,
             recentBoards = recent,
-            userMessage = mutable.value.userMessage,
+            userMessage = money.lastError ?: mutable.value.userMessage,
         )
     }
 

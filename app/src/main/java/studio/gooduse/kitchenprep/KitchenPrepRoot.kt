@@ -22,22 +22,32 @@ fun KitchenPrepRoot(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(context) { context.findActivity()?.let(resolvedBackend::attachActivity) }
-    LaunchedEffect(initialSharedText) { if (!initialSharedText.isNullOrBlank()) resolvedBackend.acceptSharedText(initialSharedText) }
+    // No app-owned onboarding. Attach monetization immediately; UMP and Billing still
+    // independently gate whether an ad request is permitted.
+    LaunchedEffect(context, resolvedBackend) {
+        context.findActivity()?.let(resolvedBackend::attachActivity)
+    }
+    LaunchedEffect(initialSharedText, resolvedBackend) {
+        if (!initialSharedText.isNullOrBlank()) {
+            resolvedBackend.acceptSharedText(initialSharedText)
+        }
+    }
     DisposableEffect(lifecycleOwner, resolvedBackend) {
-        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) resolvedBackend.onForeground() }
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) resolvedBackend.onForeground()
+        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val banner = rememberBannerHandle(state.adRequestAllowed)
     GoodUseFrame(
-        bottomRail = if (banner.loaded) ({ LoadedBannerRail(banner) }) else null
+        // The rail exists before the ad itself loads, preventing ad-load layout shift.
+        // A subscriber never gets the rail because Billing is verified first.
+        bottomRail = if (state.adRequestAllowed) ({ LoadedBannerRail(enabled = true) }) else null
     ) {
-        if (!state.onboardingComplete) {
-            OnboardingScreen(state.onboardingPage) { resolvedBackend.dispatch("ONBOARD_NEXT") }
-        } else {
-            KitchenScreen(state, resolvedBackend::dispatch)
+        when {
+            state.backendState == BackendState.SETTINGS -> StoreReadySettingsScreen(state, resolvedBackend::dispatch)
+            else -> KitchenScreen(state, resolvedBackend::dispatch)
         }
     }
 }
@@ -51,7 +61,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=412,heightDp=915,showBackground=true)
 @Composable private fun CompactPreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")
@@ -61,7 +71,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 @Preview(widthDp=1024,heightDp=768,showBackground=true)
 @Composable private fun WidePreview() {
     KitchenPrepRoot(backend=PreviewKitchenBackend().also {
-        it.dispatch("ONBOARD_NEXT"); it.dispatch("ONBOARD_NEXT"); it.dispatch("NEW_BOARD");
+        it.dispatch("NEW_BOARD");
         it.dispatch("INPUT_CAPTURED", "Chop onions\nRoast vegetables"); it.dispatch("REVIEW_CONFIRMED");
         it.dispatch("MODE_STATION"); it.dispatch("MODE_CONFIRMED"); it.dispatch("PREP_GAP_CONFIRMED");
         it.dispatch("TIMING_COOK_NOW"); it.dispatch("BOARD_STARTED")

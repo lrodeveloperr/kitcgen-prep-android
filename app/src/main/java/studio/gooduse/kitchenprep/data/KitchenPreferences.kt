@@ -46,4 +46,15 @@ class KitchenPreferences(private val context: Context) {
         it[Keys.ENTITLEMENT] = value
         it[Keys.ENTITLEMENT_AT] = verifiedAt
     }
+
+    /**
+     * Deletes app-owned local preference/profile state while leaving the Play-derived
+     * entitlement cache in place. Billing reconciliation remains authoritative.
+     */
+    suspend fun clearLocalAppState() = context.kitchenDataStore.edit { p ->
+        p.remove(Keys.ONBOARDING)
+        p.remove(Keys.SAFETY_ACK)
+        p.remove(Keys.SCREEN)
+        p.remove(Keys.SETTINGS_RETURN)
+    }
 }
